@@ -1,7 +1,8 @@
 import { PrismaClient } from '@prisma/client'
-import express, {Express, Request, Response } from 'express';
+import express, { Express, Request, Response } from 'express';
 import rootRouter from './routes';
 import { PORT } from './secrets.ts';
+import { errorMiddleware } from './middlewares/errors.ts';
 
 export const prisma = new PrismaClient();
 
@@ -10,20 +11,20 @@ const app: Express = express();
 app.use(express.json());
 
 app.use('/api', rootRouter);
-
+app.use(errorMiddleware);
 app.listen(PORT, () => console.log("App working!"))
 
 
 //prisma
 async function main() {
-    // await prisma.user.create({
-    //     data: {
-    //         name: 'JaneDoe',
-    //         email: 'janeDoe@prisma.com',
-    //     }
-    // })
-    const allUsers = await prisma.user.findMany()
-    console.log(allUsers)
+  // await prisma.user.create({
+  //     data: {
+  //         name: 'JaneDoe',
+  //         email: 'janeDoe@prisma.com',
+  //     }
+  // })
+  const allUsers = await prisma.user.findMany()
+  console.log(allUsers)
 }
 
 main()
