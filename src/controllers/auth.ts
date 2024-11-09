@@ -6,50 +6,56 @@ import { BadRequestsException } from "../exceptions/bad-request";
 import { JWT_SECRET } from "../secrets";
 import { SignUpSchema } from "../schema/users";
 import { UnprocessableEntity } from "../exceptions/validation";
-import { HttpException } from "../exceptions/root";
+import { ZodError } from "zod";
+import { InternalException } from "../exceptions/internal-exception";
+import { NotFoundException } from "../exceptions/not-found";
 
-export const signup: RequestHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const signup = async (req: Request, res: Response, next: NextFunction) => {
+    const { email, name, password } = req.body;
     try {
-        const { email, name, password } = req.body;
-
         SignUpSchema.parse(req.body)
-        let user = await prisma.user.findFirst({ where: { email } })
-        if (user) {
-            next(new BadRequestsException("User already exists!", 422))
+    } catch (err: unknown) {
+        if (err instanceof ZodError) {
+            throw new UnprocessableEntity("Unprocessable entity", err?.issues)
+        } else {
+            throw new InternalException("Something went wrong", err)
         }
-
-        user = await prisma.user.create({
-            data: {
-                name,
-                email,
-                password: bcrypt.hashSync(password, 10)
-            }
-        })
-        const { password: hashedPassword, ...userWithoutPassword } = user;
-
-        res.json({ status: 200, success: true, data: { userWithoutPassword } });
-        return;
-    } catch (err: any) {
-        next(new UnprocessableEntity("unprocessable entity", err?.issues))
     }
+    let user = await prisma.user.findFirst({ where: { email } })
+    if (user) {
+        throw new BadRequestsException("User already exists!")
+    }
+
+    user = await prisma.user.create({
+        data: {
+            name,
+            email,
+            password: bcrypt.hashSync(password, 10)
+        }
+    })
+    const { password: hashedPassword, ...userWithoutPassword } = user;
+
+    res.json({ status: 200, success: true, data: { userWithoutPassword } })
+
 }
 
 export const login: RequestHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { email, password } = req.body;
     let user = await prisma.user.findFirst({ where: { email } });
-    // console.log("password comparison: ", bcrypt.compare(password, user!.password))
+
     if (!user) {
-        next(new BadRequestsException("User email does not exist!", 404))
-        return;
+        throw new NotFoundException("User email does not exist!")
     }
     const isPasswordCorrect = await bcrypt.compare(password, user!.password)
     if (!isPasswordCorrect) {
-        next(new BadRequestsException("user password is incorrect", 405))
-        return;
+        throw new BadRequestsException("Incorrect password")
     }
+
     const token = jwt.sign({
         userId: user!.id
-    }, JWT_SECRET)
+    }, JWT_SECRET);
+
     res.json({ success: true, status: 200, data: { ...user, token } })
+
     return;
 }
