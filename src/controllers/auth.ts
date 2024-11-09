@@ -39,12 +39,14 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 
 }
 
-export const login: RequestHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+
+//login
+export const login= async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
     let user = await prisma.user.findFirst({ where: { email } });
 
     if (!user) {
-        throw new NotFoundException("User email does not exist!")
+        throw new NotFoundException("User email not found!")
     }
     const isPasswordCorrect = await bcrypt.compare(password, user!.password)
     if (!isPasswordCorrect) {
@@ -57,5 +59,11 @@ export const login: RequestHandler = async (req: Request, res: Response, next: N
 
     res.json({ success: true, status: 200, data: { ...user, token } })
 
+    return;
+}
+
+//accounts
+export const account = async (req: Request, res: Response, next: NextFunction) => {
+    res.json({ success: true, status: 200, data: { ...req.user } })
     return;
 }
