@@ -35,7 +35,7 @@ model Product {
   id            String   @id @default(uuid())
   name          String
   description   String
-  richDescription String[]
+  richDescription Json?
   price         Float
   discount      Float? // Optional discount percentage
   category      Category @relation(fields: [categoryId], references: [id])
@@ -44,14 +44,14 @@ model Product {
   SKU           String? // Unique stock-keeping unit for inventory
   stockQuantity Int // Quantity available in stock
   images        Image[]
-  attributes    Json // For storing dynamic attributes like size, color, weight
+  attributes    Json? // For storing dynamic attributes like size, color, weight
   rating        Float? // Optional rating average
   reviews       Review[] // Relation to a Review model
   isFavourite   Boolean @default(false) // If it's a popular or featured item
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  @@map("product")
+  @@map("products")
 }
 
 model Category {
