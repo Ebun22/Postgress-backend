@@ -36,12 +36,12 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
     const { password: hashedPassword, ...userWithoutPassword } = user;
 
     res.json({ status: 200, success: true, data: { userWithoutPassword } })
-
+    return;
 }
 
 
 //login
-export const login= async (req: Request, res: Response, next: NextFunction) => {
+export const login = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
     let user = await prisma.user.findFirst({ where: { email } });
 
@@ -56,8 +56,8 @@ export const login= async (req: Request, res: Response, next: NextFunction) => {
     const token = jwt.sign({
         userId: user!.id
     }, JWT_SECRET);
-
-    res.json({ success: true, status: 200, data: { ...user, token } })
+    const { password: hashedPassword, ...userWithoutPassword } = user;
+    res.json({ success: true, status: 200, data: { ...userWithoutPassword, token } })
 
     return;
 }

@@ -23,10 +23,58 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  role      Role @default(USER)
+  role      Role     @default(USER)
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("user") //maps the model to be assesible under the name users
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  name          String
+  description   String
+  richDescription String[]
+  price         Float
+  discount      Float? // Optional discount percentage
+  category      Category @relation(fields: [categoryId], references: [id])
+  categoryId    String
+  brand         String?
+  SKU           String? // Unique stock-keeping unit for inventory
+  stockQuantity Int // Quantity available in stock
+  images        Image[]
+  attributes    Json // For storing dynamic attributes like size, color, weight
+  rating        Float? // Optional rating average
+  reviews       Review[] // Relation to a Review model
+  isFavourite   Boolean @default(false) // If it's a popular or featured item
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("product")
+}
+
+model Category {
+  id       String    @id @default(uuid())
+  name     String
+  parentId String? // Optional for nested categories
+  products Product[]
+}
+
+model Image {
+  id        String  @id @default(uuid())
+  productId String
+  url       String
+  altText   String?
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String // ID of the user who submitted the review
+  rating    Int // Rating value (1-5 scale)
+  comment   String?
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
 }
