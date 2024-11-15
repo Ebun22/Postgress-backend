@@ -4,7 +4,7 @@ import { JWT_SECRET } from "../secrets";
 import jwt from "jsonwebtoken";
 import { prisma } from "..";
 
-export const unauthorized = async (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleWare = async (req: Request, res: Response, next: NextFunction) => {
     // 1, get the token from Headers
     const token = req.headers.authorization?.split(" ")[1]
     //2, handle if token deosn't exist
