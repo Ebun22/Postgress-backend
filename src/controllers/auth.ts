@@ -1,7 +1,7 @@
 import { Response, Request, RequestHandler, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
-import { prisma } from "..";
+import { rawPrisma } from "..";
 import { BadRequestsException } from "../exceptions/bad-request";
 import { JWT_SECRET } from "../secrets";
 import { SignUpSchema } from "../schema/users";
@@ -21,12 +21,12 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
             throw new InternalException("Something went wrong", err)
         }
     }
-    let user = await prisma.user.findFirst({ where: { email } })
+    let user = await rawPrisma.user.findFirst({ where: { email } })
     if (user) {
         throw new BadRequestsException("User already exists!")
     }
 
-    user = await prisma.user.create({
+    user = await rawPrisma.user.create({
         data: {
             name,
             email,
@@ -43,7 +43,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 //login
 export const login = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
-    let user = await prisma.user.findFirst({ where: { email } });
+    let user = await rawPrisma.user.findFirst({ where: { email } });
 
     if (!user) {
         throw new NotFoundException("User email not found!")

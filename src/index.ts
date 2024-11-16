@@ -3,8 +3,11 @@ import express, { Express, Request, Response } from 'express';
 import rootRouter from './routes';
 import { PORT } from './secrets.ts';
 import { errorMiddleware } from './middlewares/errors.ts';
+import { SoftDelete } from './middlewares/softDelete.ts';
 
-export const prisma = new PrismaClient();
+
+export const rawPrisma = new PrismaClient();
+export const extendedPrisma = new PrismaClient().$extends(SoftDelete);
 
 const app: Express = express();
 
@@ -17,22 +20,17 @@ app.listen(PORT, () => console.log("App working!"))
 
 //prisma
 async function main() {
-  // await prisma.user.create({
-  //     data: {
-  //         name: 'JaneDoe',
-  //         email: 'janeDoe@prisma.com',
-  //     }
-  // })
-  const allUsers = await prisma.user.findMany()
+
+  const allUsers = await rawPrisma.user.findMany()
   console.log(allUsers)
 }
 
 main()
   .then(async () => {
-    await prisma.$disconnect()
+    await rawPrisma.$disconnect()
   })
   .catch(async (e) => {
     console.error(e)
-    await prisma.$disconnect()
+    await rawPrisma.$disconnect()
     process.exit(1)
   })
