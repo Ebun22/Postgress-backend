@@ -17,24 +17,28 @@ export const SoftDelete = Prisma.defineExtension({
                     where: { ...args.where, deleted_at: null }
                 })
             },
-            delete({ args, query }) {
-                return query({
-                    ...args,
-                    action: "update",
-                    data: { ...args.where, deleted_at: Date.now() }
-                })
+           async delete({ args, query, operation}) {
+               console.log("THIS I STHE ARGS: ", args, "THIS IS TEH QUERYS: ", query, operation )
+            //    args = {
+            //     args.action = {}
+            //    }
+            //     return query({
+            //         ...args, // Keep existing arguments
+            //         data: {
+            //             deleted_at: new Date(), // Soft delete by setting the `deleted_at` timestamp
+            //         },
+            //     } as Prisma.ProductUpdateArgs); // Explicitly cast to `ProductUpdateArgs`
             },
             deleteMany({ args, query }) {
                 return query({
                     ...args,
-                    action: "updateMany",
-                    data: { ...args.where, deleted_at: Date.now() }
+                    where: args.where,
+                    data: {deleted_at: Date.now() }
                 })
             },
             update({ args, query }) {
                 return query({
                     ...args,
-                    action: "update",
                     where: args.where,
                     data: { deletedAt: null }
                 })
@@ -42,7 +46,6 @@ export const SoftDelete = Prisma.defineExtension({
             updateMany({ args, query }) {
                 return query({
                     ...args,
-                    action: "updateMany",
                     where: args.where,
                     data: { deletedAt: null }
                 })

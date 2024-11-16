@@ -78,7 +78,7 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
 
 export const addProductToTrash = async (req: Request, res: Response, next: NextFunction) => {
     try{
-        const trashedProducts = await extendedPrisma.product.delete({where: {id: req.body.id}})
+        const trashedProducts = await extendedPrisma.product.delete({where: {id: req.params.id}})
         if(trashedProducts){
             res.json({ success: true, statusCoe: 202, data: trashedProducts });
         }
