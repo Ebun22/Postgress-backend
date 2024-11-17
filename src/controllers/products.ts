@@ -27,6 +27,7 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
 }
 
 export const updateProducts = async (req: Request, res: Response, next: NextFunction) => {
+    //handle validation
     try {
         ProductUpdateSchma.parse(req.body);
     } catch (err) {
@@ -38,6 +39,8 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
             throw new InternalException("Something went wrong", err)
         }
     }
+
+    //handle main updating logic
     try {
         const data = req.body;
         console.log(req.params.id)
@@ -76,6 +79,7 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
 
 let currentPage = 0;
 export const getAllProducts = async (req: Request, res: Response, next: NextFunction) => {
+    //handle pagination
     const totalProduct = await prisma.product.count();
     let cursorProduct
     const { limit = 1, cursor } = req.query
@@ -96,6 +100,7 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
     if (allProducts.length == 0 && cursor) {
         throw new BadRequestsException("Invalid Cursor sent")
     }
+    //handle main get all product
     if (allProducts) {
         console.log("This is the last product: ", allProducts[allProducts.length - 1].id, allProducts.length)
         const nextCursor = (allProducts.length == limit) ? allProducts[allProducts.length - 1].id : null
@@ -111,14 +116,24 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
 }
 
 export const getProductById = async (req: Request, res: Response, next: NextFunction) => {
-    const product = await prisma.product.findFirst({
-        where: {
-            id: req.params.id
+    try{
+        const product = await prisma.product.findFirstOrThrow({
+            where: {
+                id: req.params.id
+            }
+        })
+        if (product) {
+            res.json({ success: true, statusCode: 200, data: { product } })
+            return;
         }
-    })
-    if (product) {
-        res.json({ success: true, statusCode: 200, data: { product } })
         return;
+    }catch(err){
+        if(err instanceof Prisma.PrismaClientKnownRequestError && (err.code == "P2025")){
+            throw new NotFoundException("Product not found:");
+        }else{
+            console.log(err);
+            throw new InternalException("something went wrong :(", err)
+        }
     }
-
+return;
 }

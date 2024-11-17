@@ -21,6 +21,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
             throw new InternalException("Something went wrong", err)
         }
     }
+    
     let user = await prisma.user.findFirst({ where: { email } })
     if (user) {
         throw new BadRequestsException("User already exists!")
