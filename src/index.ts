@@ -3,11 +3,11 @@ import express, { Express, Request, Response } from 'express';
 import rootRouter from './routes';
 import { PORT } from './secrets.ts';
 import { errorMiddleware } from './middlewares/errors.ts';
-import { SoftDelete } from './middlewares/softDelete.ts';
+import { softDelete, softDeleteMany } from './extensions/prisma.extentions.ts';
 
 
 export const rawPrisma = new PrismaClient();
-export const extendedPrisma = new PrismaClient().$extends(SoftDelete);
+export const extendedPrisma = new PrismaClient().$extends(softDelete).$extends(softDeleteMany);
 
 const app: Express = express();
 
