@@ -12,16 +12,10 @@ import { NotFoundException } from "../exceptions/not-found";
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
     const { email, name, password } = req.body;
-    try {
-        SignUpSchema.parse(req.body)
-    } catch (err: unknown) {
-        if (err instanceof ZodError) {
-            throw new UnprocessableEntity("Unprocessable entity", err?.issues)
-        } else {
-            throw new InternalException("Something went wrong", err)
-        }
-    }
     
+    //handling Zod error in my errorHandling function
+    SignUpSchema.parse(req.body);
+
     let user = await prisma.user.findFirst({ where: { email } })
     if (user) {
         throw new BadRequestsException("User already exists!")
@@ -63,8 +57,3 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     return;
 }
 
-//accounts
-export const account = async (req: Request, res: Response, next: NextFunction) => {
-    res.json({ success: true, status: 200, data: { ...req.user } })
-    return;
-}

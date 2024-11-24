@@ -18,17 +18,46 @@ enum Role {
   ADMIN
 }
 
+enum OrderEventStatus {
+  PENDING
+  PROCESSING
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
 model User {
   // id Int  @id @default(autoincrement())
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  role      Role     @default(USER)
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                       String            @id @default(cuid())
+  email                    String            @unique
+  name                     String?
+  role                     Role              @default(USER)
+  defaultShippingAddressId String?           @unique
+  password                 String
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  cart                     Cart[]
+  address                  ShippingAddress[]
+  Order                    Order[]
 
   @@map("user") //maps the model to be assesible under the name users
+}
+
+model ShippingAddress {
+  id                   String   @id @default(cuid())
+  roomNo               Int
+  buildingName         String
+  street               String
+  area                 String?
+  landmark             String?
+  deliveryInstructions String?
+  receiverInformation  String?
+  number               String
+  userId               String
+  user                 User?    @relation(fields: [userId], references: [id])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  cartId               String?
 }
 
 model Product {
@@ -42,16 +71,65 @@ model Product {
   categoryId    String?
   brand         String?
   SKU           String? // Unique stock-keeping unit for inventory
+  //mark quantity as out of stock if SQ is zero
   stockQuantity Int // Quantity available in stock
   // images        Image[]
   attributes    Json? // For storing dynamic attributes like size, color, weight
   rating        Float? // Optional rating average
   // reviews       Review[] // Relation to a Review model
-  isFavourite   Boolean @default(false) // If it's a popular or featured item
+  isFavourite   Boolean  @default(false) // If it's a popular or featured item
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  Cart   Cart[]
+  orders OrderProduct[]
+
   @@map("products")
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+  productId String   @unique
+  quantity  Int
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id        String           @id @default(cuid())
+  netAmount Decimal
+  address   String
+  userId    String          
+  status    OrderEventStatus @default(PENDING)
+  user      User            @relation(fields: [userId], references: [id])
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  products OrderProduct[]
+  events   OrderEvent[]
+}
+
+model OrderProduct {
+  id        String   @id @default(cuid())
+  quantity  Int
+  orderId   String 
+  productId String  
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderEvent {
+  id        String           @id @default(cuid())
+  orderId   String
+  status    OrderEventStatus @default(PENDING)
+  order     Order            @relation(fields: [orderId], references: [id])
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 }
 
 // model Category {

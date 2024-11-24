@@ -4,10 +4,27 @@ import rootRouter from './routes';
 import { PORT } from './secrets.ts';
 import { errorMiddleware } from './middlewares/errors.ts';
 
-export const prisma = new PrismaClient();
+export const prisma = new PrismaClient().$extends({
+  result: {
+    shippingAddress: {
+      formattedAddress: {
+        needs: {
+          roomNo: true,
+          buildingName: true,
+          street: true,
+          area: true,
+          landmark: true,
+        },
+        compute: (addr) => {
+          return `${addr.roomNo} ${addr.buildingName}, ${addr.street}, ${addr.roomNo}, ${addr.landmark}`
+        }
+      }
+    }
+  }
+});
+;
 
-const app: Express = express();
-
+const app: Express = express()
 app.use(express.json());
 
 app.use('/api', rootRouter);
