@@ -67,24 +67,48 @@ model Product {
   // richDescription Json?
   price         Float
   discount      Float? // Optional discount percentage
-  // category      Category? @relation(fields: [categoryId], references: [id])
-  categoryId    String?
   brand         String?
-  SKU           String? // Unique stock-keeping unit for inventory
+  SKU           String?
   //mark quantity as out of stock if SQ is zero
-  stockQuantity Int // Quantity available in stock
+  stockQuantity Int
   // images        Image[]
   attributes    Json? // For storing dynamic attributes like size, color, weight
   rating        Float? // Optional rating average
-  // reviews       Review[] // Relation to a Review model
-  isFavourite   Boolean  @default(false) // If it's a popular or featured item
+  reviews       Review[] // Relation to a Review model
+  isFavourite   Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  Cart   Cart[]
-  orders OrderProduct[]
+  Cart     Cart[]
+  orders   OrderProduct[]
+  category Category[]
 
   @@map("products")
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  parentId  String?
+  Product   Product[]
+}
+
+// model Image {
+//   id        String  @id @default(uuid())
+//   productId String
+//   url       String
+//   altText   String?
+//   product   Product @relation(fields: [productId], references: [id])
+// }
+
+model Review {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String // ID of the user who submitted the review
+  rating    Int // Rating value (1-5 scale)
+  comment   String?
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
 }
 
 model Cart {
@@ -102,9 +126,9 @@ model Order {
   id        String           @id @default(cuid())
   netAmount Decimal
   address   String
-  userId    String          
+  userId    String
   status    OrderEventStatus @default(PENDING)
-  user      User            @relation(fields: [userId], references: [id])
+  user      User             @relation(fields: [userId], references: [id])
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
@@ -115,8 +139,8 @@ model Order {
 model OrderProduct {
   id        String   @id @default(cuid())
   quantity  Int
-  orderId   String 
-  productId String  
+  orderId   String
+  productId String
   order     Order    @relation(fields: [orderId], references: [id])
   product   Product  @relation(fields: [productId], references: [id])
   createdAt DateTime @default(now())
@@ -131,28 +155,3 @@ model OrderEvent {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 }
-
-// model Category {
-//   id       String    @id @default(uuid())
-//   name     String
-//   parentId String? // Optional for nested categories
-//   products Product[]
-// }
-
-// model Image {
-//   id        String  @id @default(uuid())
-//   productId String
-//   url       String
-//   altText   String?
-//   product   Product @relation(fields: [productId], references: [id])
-// }
-
-// model Review {
-//   id        String   @id @default(uuid())
-//   productId String
-//   userId    String // ID of the user who submitted the review
-//   rating    Int // Rating value (1-5 scale)
-//   comment   String?
-//   createdAt DateTime @default(now())
-//   product   Product  @relation(fields: [productId], references: [id])
-// }

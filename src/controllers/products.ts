@@ -4,16 +4,39 @@ import { UnprocessableEntity } from "../exceptions/validation";
 import { InternalException } from "../exceptions/internal-exception";
 import { ProductSchema, ProductUpdateSchma } from "../schema/products";
 import { prisma } from "..";
-import { Prisma } from "@prisma/client"
+import { Category, Prisma, Product } from "@prisma/client"
 import { NotFoundException } from "../exceptions/not-found";
 import { BadRequestsException } from "../exceptions/bad-request";
 
 export const createProducts = async (req: Request, res: Response, next: NextFunction) => {
-    ProductSchema.parse(req.body)
+    const validateProduct = ProductSchema.parse(req.body)
+    console.log(req.body)
 
-    const product = await prisma.product.create({ data: req.body })
-    res.status(201).json({ status: 201, success: true, data: { product } })
-    return;
+    // if (validateProduct.category) {
+    //     //get out the category
+    //     //get out the id for connect
+    // }
+    try {
+        let {category,  ...body} = req.body
+        console.log(category)
+        const product = await prisma.product.create({
+            data: {
+                ...body,
+                category:{ 
+                    create: category.map((cat: Category) => ({
+                    name: cat.name,
+                    parentId: cat.parentId,
+                }))
+            },
+            },
+
+        })
+        res.status(201).json({ status: 201, success: true, data: { ...product } })
+        return;
+    } catch (err) {
+        console.log(err)
+    }
+
 }
 
 export const updateProducts = async (req: Request, res: Response, next: NextFunction) => {
@@ -56,7 +79,7 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
     if (allProducts.length == 0 && cursor) {
         throw new BadRequestsException("Invalid Cursor sent")
     }
-    
+
     //handle main get all product
     if (allProducts) {
         console.log("This is the last product: ", allProducts[allProducts.length - 1].id, allProducts.length)
@@ -76,6 +99,15 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
     const product = await prisma.product.findFirstOrThrow({
         where: {
             id: req.params.id
+        },
+        include: {
+            category: {
+                select: {
+                    name: true,
+                    parentId: true
+                }
+
+            }
         }
     })
     if (product) {

@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { CategoryArraySchema } from "./category";
 
 export const ProductSchema = z.object({
-        
+
   name: z.string().min(2),
   description: z.string().min(2),
   // richDescription: z.array(
@@ -9,7 +10,7 @@ export const ProductSchema = z.object({
   // ),
   price: z.number(),
   discount: z.number().optional(),
-  // categoryId: z.string().optional(),
+  category: CategoryArraySchema.optional(),
   brand: z.string().optional(),
   SKU: z.string().optional(),
   stockQuantity: z.number().int(),
