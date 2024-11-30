@@ -27,9 +27,6 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
                     id: req.user.defaultShippingAddress
                 }
             })
-            // if(address){
-
-            // }
 
             //figure out what address is being sent if default fails
             console.log("Thsi is teh address: ", address, "Thsi si teh default addy: ", req.user.defaultShippingAddress)
@@ -73,7 +70,7 @@ export const listOrders = async (req: Request, res: Response, next: NextFunction
         const userOrder = await prisma.order.findFirstOrThrow({ where: { userId: req.user.id } })
         if (userOrder) {
             const orders = await prisma.order.findMany()
-            return res.json({ success: true, statusCode: 200, data: { ...orders } })
+            return res.json({ success: true, statusCode: 200, data: [...orders] })
         }
     } catch (err) {
         throw new BadRequestsException("Order doesn't belong to logged in user")

@@ -59,7 +59,7 @@ export const changeQuantity = async (req: Request, res: Response, next: NextFunc
                 where: { id: req.params.id },
                 data: validateCartUpdate
             })
-            res.status(200).json({success: true, statusCode: 200, data: {cart}})
+            res.status(200).json({success: true, statusCode: 200, data: {...cart}})
         } else {
             //if qunatity is zero, delete item from cart
             try {

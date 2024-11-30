@@ -15,7 +15,7 @@ export const createShippingAddress = async (req: Request, res: Response, next: N
 
 export const getShippingAddress = async (req: Request, res: Response, next: NextFunction) => {
     const address = await prisma.shippingAddress.findMany();
-    res.status(200).json({ success: true, statusCode: 200, data: { ...address } });
+    res.status(200).json({ success: true, statusCode: 200, data: [...address] });
     return;
 }
 
