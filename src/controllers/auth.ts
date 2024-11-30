@@ -30,7 +30,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
     })
     const { password: hashedPassword, ...userWithoutPassword } = user;
 
-    res.json({ status: 200, success: true, data: { userWithoutPassword } })
+    res.json({ status: 200, success: true, data: { ...userWithoutPassword } })
     return;
 }
 

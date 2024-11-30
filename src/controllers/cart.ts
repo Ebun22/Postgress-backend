@@ -19,7 +19,7 @@ export const addItemToCart = async (req: Request, res: Response, next: NextFunct
             update: { quantity: { increment: validateCart.quantity } },
             create: { ...validateCart, userId: req.user.id }
         })
-        res.status(201).json({ success: true, statusCode: 201, data: { cartItem } })
+        res.status(201).json({ success: true, statusCode: 201, data: { ...cartItem } })
     } else {
         throw new NotFoundException("Product not found");
     }
@@ -41,7 +41,7 @@ export const getCart = async (req: Request, res: Response, next: NextFunction) =
                 }
             }
         })
-        res.json({ success: true, statusCode: 201, data: { cart } })
+        res.json({ success: true, statusCode: 201, data: { ...cart } })
     } catch (err) {
         throw new BadRequestsException("Cart doesn't belong to user")
     }

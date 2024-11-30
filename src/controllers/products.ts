@@ -45,14 +45,14 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
     const data = req.body;
     console.log(req.params.id)
     const product = await prisma.product.update({ where: { id: req.params.id }, data })
-    res.json({ success: true, statusCoe: 200, data: product });
+    res.json({ success: true, statusCoe: 200, data: {...product} });
 }
 
 export const deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
 
     const deletedProduct = await prisma.product.delete({ where: { id: req.params.id } })
     if (deletedProduct) {
-        res.status(204)
+        res.status(204).json()
         return;
     }
 }
@@ -111,7 +111,7 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
         }
     })
     if (product) {
-        res.json({ success: true, statusCode: 200, data: { product } })
+        res.json({ success: true, statusCode: 200, data: { ...product } })
         return;
     }
 }

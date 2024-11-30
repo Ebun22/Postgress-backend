@@ -56,7 +56,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
             })
 
             await tx.cart.deleteMany({ where: { userId: req.user.id } })
-            return res.json({ success: true, statusCode: 201, data: { order } })
+            return res.json({ success: true, statusCode: 201, data: { ...order } })
         })
 
     } catch (err) {
@@ -73,7 +73,7 @@ export const listOrders = async (req: Request, res: Response, next: NextFunction
         const userOrder = await prisma.order.findFirstOrThrow({ where: { userId: req.user.id } })
         if (userOrder) {
             const orders = await prisma.order.findMany()
-            return res.json({ success: true, statusCode: 200, data: { orders } })
+            return res.json({ success: true, statusCode: 200, data: { ...orders } })
         }
     } catch (err) {
         throw new BadRequestsException("Order doesn't belong to logged in user")
@@ -102,7 +102,7 @@ export const cancelOrders = async (req: Request, res: Response, next: NextFuncti
                             status: 'CANCELLED'
                         }
                     })
-                    return res.json({ success: true, statusCode: 200, data: order });
+                    return res.json({ success: true, statusCode: 200, data: {...order} });
                 }
             } catch (err) {
                 throw new BadRequestsException("Order doesn't belong to logged in user")
@@ -127,7 +127,7 @@ export const getOrderById = async (req: Request, res: Response, next: NextFuncti
                         events: true
                     }
                 })
-                return res.json({ success: true, statusCode: 200, data: { order } });
+                return res.json({ success: true, statusCode: 200, data: { ...order } });
 
             } catch (err) {
                 throw new NotFoundException("Order Id not found, Order doesn't exist")
