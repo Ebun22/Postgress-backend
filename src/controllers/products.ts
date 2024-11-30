@@ -85,7 +85,7 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
         console.log("This is the last product: ", allProducts[allProducts.length - 1].id, allProducts.length)
         const nextCursor = (allProducts.length == limit) ? allProducts[allProducts.length - 1].id : null
         res.json({
-            success: true, statusCode: 200, data: { allProducts }, pagination: {
+            success: true, statusCode: 200, data: { ...allProducts }, pagination: {
                 // currentPage: currentPage += 1,
                 totaPages: Math.ceil(totalProduct / Number(limit)),
                 nextPageURL: `${req.protocol}://${req.get('host')}${req.path}api/product/?limit=${limit}&cursor=${nextCursor}`
