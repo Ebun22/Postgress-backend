@@ -1,23 +1,29 @@
 import { Request, Response, NextFunction } from "express"
 import { prisma } from ".."
 import { BadRequestsException } from "../exceptions/bad-request"
-import { Prisma } from "@prisma/client"
+import { Cart, Prisma } from "@prisma/client"
 import { NotFoundException } from "../exceptions/not-found"
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
     try {
         await prisma.$transaction(async (tx) => {
-            const cartItems = await tx.cart.findMany({
+            const cart = await tx.cart.findFirst({
                 where: { userId: req.user.id },
                 include: {
-                    product: true
+                    cartItems: {
+                        select: {
+                            product: true,
+                            quantity: true
+                        }
+                    }
                 }
             })
-
-            if (cartItems.length === 0) {
+            if (!cart) return res.json({ success: true, message: "user has no cart" })
+            if (cart.cartItems.length === 0) {
                 return res.json({ success: true, message: "Cart is empty" })
             }
-            const totalPrice = cartItems.reduce((prev, current) => {
+
+            const totalPrice = cart.cartItems.reduce((prev, current) => {
                 return prev += (current.product.price * current.quantity)
             }, 0)
 
@@ -99,7 +105,7 @@ export const cancelOrders = async (req: Request, res: Response, next: NextFuncti
                             status: 'CANCELLED'
                         }
                     })
-                    return res.json({ success: true, statusCode: 200, data: {...order} });
+                    return res.json({ success: true, statusCode: 200, data: { ...order } });
                 }
             } catch (err) {
                 throw new BadRequestsException("Order doesn't belong to logged in user")

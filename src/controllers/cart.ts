@@ -71,25 +71,6 @@ export const addItemToCart = async (req: Request, res: Response, next: NextFunct
         console.log("this si err in cart: ", err)
         throw new NotFoundException("Product Id doesn't exist")
     }
-
-
-
-    //     //if productID already exists in cart, create cart if cart deosn't already exist, add item to cart, if item already exists in cart add qunatity to existing quantity
-    //     if (product) {
-    //         Item = await Promise.all(
-    //             product.map(({ id }, index) =>
-    //                 prisma.cart.upsert({
-    //                     where: { userId: req.body.id }
-    //                 },
-    //                     update: { quantity: { increment: validateCart[index].quantity } },
-    //                     create: { userId: req.user.id }
-    //                 })
-    //             )
-    //         )
-
-    //     } else {
-    //     throw new NotFoundException("Product not found");
-    // }
 }
 
 export const getCart = async (req: Request, res: Response, next: NextFunction) => {
