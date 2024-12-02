@@ -17,17 +17,17 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
     //     //get out the id for connect
     // }
     try {
-        let {category,  ...body} = req.body
+        let { category, ...body } = req.body
         console.log(category)
         const product = await prisma.product.create({
             data: {
                 ...body,
-                category:{ 
+                category: {
                     create: category.map((cat: Category) => ({
-                    name: cat.name,
-                    parentId: cat.parentId,
-                }))
-            },
+                        name: cat.name,
+                        parentId: cat.parentId,
+                    }))
+                },
             },
 
         })
@@ -45,7 +45,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
     const data = req.body;
     console.log(req.params.id)
     const product = await prisma.product.update({ where: { id: req.params.id }, data })
-    res.json({ success: true, statusCoe: 200, data: {...product} });
+    res.json({ success: true, statusCoe: 200, data: { ...product } });
 }
 
 export const deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
@@ -111,7 +111,52 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
         }
     })
     if (product) {
-        res.json({ success: true, statusCode: 200, data: {...product} })
+        res.json({ success: true, status: 200, data: { ...product } })
         return;
     }
 }
+
+//connect and disconnect categories to products
+export const manageCategoriesOnProduct = async (req: Request, res: Response, next: NextFunction) => {
+    const { productid } = req.params;
+    const { connect, disconnect } = req.query;
+
+    const updateCategories: { category?: any } = {}
+
+    //check if conect id is a valid category id
+    const categoryExists = async (id: string) => {
+        try {
+            await prisma.category.findFirst({ where: { id } })
+        } catch (err) {
+            throw new NotFoundException("Category with provided Id doesn't exist")
+        }
+    }
+
+    if (connect) {
+        categoryExists(connect as string)
+        updateCategories.category = {
+            connect: { id: connect }
+        }
+    }
+
+    if (disconnect) {
+        categoryExists(connect as string)
+        updateCategories.category = {
+            disconnect: { id: disconnect }
+        }
+    }
+
+    try{
+        const product = await prisma.product.update({
+            where: { id: productid },
+            data: updateCategories,
+            include: { category: true }
+        });
+    
+        return res.json({ success: true, status: 200, data: { ...product } })
+    }catch(err){
+        console.log(err)
+        throw new NotFoundException("Product with provided Id doesn't exist")
+    }
+}
+

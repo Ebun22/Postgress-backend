@@ -15,7 +15,9 @@ export const authMiddleWare = async (req: Request, res: Response, next: NextFunc
         //3, if it deos, verify token and get payload
         const payload = jwt.verify(token!, JWT_SECRET) as any
         //4, use payload to find user in db
-        const user = await prisma.user.findFirst({ where: { id: payload.userId } });
+        const user = await prisma.user.findFirst({ 
+            where: { id: payload.userId }
+         });
         //5, if no user then throw unauthorized
         if (!user) {
             next(new UnauthorizedException("Unauthenticated: User doesn't exist"))

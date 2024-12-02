@@ -53,14 +53,14 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
             })
 
             await tx.cart.deleteMany({ where: { userId: req.user.id } })
-            return res.json({ success: true, statusCode: 201, data: { ...order } })
+            return res.json({ success: true, status: 201, data: { ...order } })
         })
 
     } catch (err) {
         if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
             throw new NotFoundException(err.message)
         }
-        console.log("Thsi is error in transactions: ", err)
+        console.log("This is error in transactions: ", err)
     }
 
 }
@@ -70,7 +70,7 @@ export const listOrders = async (req: Request, res: Response, next: NextFunction
         const userOrder = await prisma.order.findFirstOrThrow({ where: { userId: req.user.id } })
         if (userOrder) {
             const orders = await prisma.order.findMany()
-            return res.json({ success: true, statusCode: 200, data: [...orders] })
+            return res.json({ success: true, status: 200, data: [...orders] })
         }
     } catch (err) {
         throw new BadRequestsException("Order doesn't belong to logged in user")

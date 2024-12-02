@@ -61,7 +61,7 @@ model ShippingAddress {
 }
 
 model Product {
-  id            String   @id @default(uuid())
+  id            String   @id @default(cuid())
   name          String
   description   String
   // richDescription Json?
@@ -79,22 +79,68 @@ model Product {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  Cart     Cart[]
+  cart     CartItem[]
   orders   OrderProduct[]
   category Category[]
+  recipe   RecipeProducts[]
 
   @@map("products")
 }
 
+model CartItem {
+  id        String   @id @default(cuid())
+  quantity  Int
+  cartId    String
+  productId String   @unique
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  cartItems CartItem[]
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String     
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Recipe {
+  id         String           @id @default(cuid())
+  name       String
+  directions String
+  duration   String?
+  difficulty String?
+  ratings    Float?
+  product    RecipeProducts[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@map("recipes")
+}
+
+model RecipeProducts {
+  id         String   @id @default(cuid())
+  quantity   Int
+  productId  String   @unique
+  recipeId   String   @unique
+  ingredient Product  @relation(fields: [productId], references: [id])
+  recipe     Recipe   @relation(fields: [recipeId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 model Category {
-  id        String    @id @default(uuid())
-  name      String
-  parentId  String?
-  Product   Product[]
+  id       String    @id @default(cuid())
+  name     String
+  parentId String?
+  Product  Product[]
 }
 
 // model Image {
-//   id        String  @id @default(uuid())
+//   id        String  @id @default(cuid())
 //   productId String
 //   url       String
 //   altText   String?
@@ -102,24 +148,13 @@ model Category {
 // }
 
 model Review {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   productId String
   userId    String // ID of the user who submitted the review
   rating    Int // Rating value (1-5 scale)
   comment   String?
   createdAt DateTime @default(now())
   product   Product  @relation(fields: [productId], references: [id])
-}
-
-model Cart {
-  id        String   @id @default(cuid())
-  product   Product  @relation(fields: [productId], references: [id])
-  user      User?    @relation(fields: [userId], references: [id])
-  productId String   @unique
-  quantity  Int
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Order {

@@ -1,15 +1,15 @@
 import { Router } from "express";
 import { errorHandler } from "../error-handler";
 import { authMiddleWare } from "../middlewares/auth";
-import { cancelOrders, createOrder, getOrderById, listOrders } from "../controllers/orders";
 import { adminMiddleWare } from "../middlewares/admin";
+import { createCategories, deleteCategories, getAllCategories, getCategoriesById } from "../controllers/categories";
 
-const catgoriesRoutes: Router = Router()
+const categoryRoutes: Router = Router()
+//d66e30b2-07b8-46a1-83bc-d6aa175d306d
 
+categoryRoutes.post("/", [authMiddleWare, adminMiddleWare], errorHandler(createCategories))
+categoryRoutes.get("/", [authMiddleWare], errorHandler(getAllCategories))
+categoryRoutes.get("/:id", [authMiddleWare], errorHandler(getCategoriesById))
+categoryRoutes.delete("/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteCategories))
 
-catgoriesRoutes.post("/", [authMiddleWare, adminMiddleWare], errorHandler(createOrder))
-catgoriesRoutes.get("/", [authMiddleWare], errorHandler(listOrders))
-catgoriesRoutes.get("/:id", [authMiddleWare], errorHandler(getOrderById))
-catgoriesRoutes.put("/:id", [authMiddleWare, adminMiddleWare], errorHandler(cancelOrders))
-
-export default catgoriesRoutes;
+export default categoryRoutes;
