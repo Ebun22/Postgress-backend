@@ -71,7 +71,6 @@ model Product {
   SKU           String?
   //mark quantity as out of stock if SQ is zero
   stockQuantity Int
-  // images        Image[]
   attributes    Json? // For storing dynamic attributes like size, color, weight
   rating        Float? // Optional rating average
   reviews       Review[] // Relation to a Review model
@@ -79,6 +78,7 @@ model Product {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  images   Image[]
   cart     CartItem[]
   orders   OrderProduct[]
   category Category[]
@@ -101,8 +101,8 @@ model CartItem {
 model Cart {
   id        String     @id @default(cuid())
   cartItems CartItem[]
-  user      User      @relation(fields: [userId], references: [id])
-  userId    String     
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }
@@ -114,9 +114,10 @@ model Recipe {
   duration   String?
   difficulty String?
   ratings    Float?
-  product    RecipeProducts[]
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
+  image      Image[]
+  product    RecipeProducts[]
 
   @@map("recipes")
 }
@@ -139,13 +140,15 @@ model Category {
   Product  Product[]
 }
 
-// model Image {
-//   id        String  @id @default(cuid())
-//   productId String
-//   url       String
-//   altText   String?
-//   product   Product @relation(fields: [productId], references: [id])
-// }
+model Image {
+  id        String  @id @default(cuid())
+  productId String?
+  recipeId  String?
+  url       String
+  altText   String?
+  product   Product? @relation(fields: [productId], references: [id])
+  Recipe Recipe? @relation(fields: [recipeId], references: [id])
+}
 
 model Review {
   id        String   @id @default(cuid())

@@ -5,21 +5,18 @@ export const ProductSchema = z.object({
 
   name: z.string().min(2),
   description: z.string().min(2),
-  // richDescription: z.array(
-  //   z.object({ nutrient: z.string()})
-  // ),
   price: z.number(),
   discount: z.number().optional(),
   category: CategoryArraySchema.optional(),
   brand: z.string().optional(),
   SKU: z.string().optional(),
   stockQuantity: z.number().int(),
-  // images: z.array(
-  //   z.object({
-  //     url: z.string().url(),
-  //     alt: z.string().optional(),
-  //   })
-  // ),
+  images: z.array(
+    z.object({
+      url: z.string().url(),
+      alt: z.string().optional(),
+    })
+  ),
   attributes: z.any(),
   rating: z.number().optional(),
   // reviews: z.array(

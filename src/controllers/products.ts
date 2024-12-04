@@ -4,21 +4,33 @@ import { UnprocessableEntity } from "../exceptions/validation";
 import { InternalException } from "../exceptions/internal-exception";
 import { ProductSchema, ProductUpdateSchma } from "../schema/products";
 import { prisma } from "..";
-import { Category, Prisma, Product } from "@prisma/client"
+import { Category, Image, Prisma, Product } from "@prisma/client"
 import { NotFoundException } from "../exceptions/not-found";
 import { BadRequestsException } from "../exceptions/bad-request";
+import cloudinary from "../cloudinary";
 
 export const createProducts = async (req: Request, res: Response, next: NextFunction) => {
     const validateProduct = ProductSchema.parse(req.body)
-    console.log(req.body)
+    let { category, image, ...body } = req.body
 
-    // if (validateProduct.category) {
-    //     //get out the category
-    //     //get out the id for connect
-    // }
+    //UPLOAD AND IMAGE
     try {
-        let { category, ...body } = req.body
-        console.log(category)
+        const uploadResult = await Promise.all(
+            image.map((img: Image) => { 
+                cloudinary.uploader
+                .upload(img.url, {
+                    public_id: 'products',
+                    folder: 'products',
+                }
+                )
+            })
+        )
+        console.log(uploadResult)
+    } catch (err) {
+        console.log("This error in image uppload: ", err)
+        throw new BadRequestsException("Error uploading image")
+    }
+    try {
         const product = await prisma.product.create({
             data: {
                 ...body,
@@ -27,10 +39,10 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
                         name: cat.name,
                         parentId: cat.parentId,
                     }))
-                },
+                }
             },
-
         })
+
         res.status(201).json({ status: 201, success: true, data: { ...product } })
         return;
     } catch (err) {
@@ -146,15 +158,15 @@ export const manageCategoriesOnProduct = async (req: Request, res: Response, nex
         }
     }
 
-    try{
+    try {
         const product = await prisma.product.update({
             where: { id: productid },
             data: updateCategories,
             include: { category: true }
         });
-    
+
         return res.json({ success: true, status: 200, data: { ...product } })
-    }catch(err){
+    } catch (err) {
         console.log(err)
         throw new NotFoundException("Product with provided Id doesn't exist")
     }
