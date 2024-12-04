@@ -42,7 +42,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
                     address: address.formattedAddress,
                     userId: req.user.id,
                     products: {
-                        create: cartItems.map((items) => {
+                        create: cart.cartItems.map((items: { product: { id: string }; quantity: number }) => {
                             return {
                                 productId: items.product.id,
                                 quantity: items.quantity
