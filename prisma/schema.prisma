@@ -145,7 +145,6 @@ model Image {
   productId String?
   recipeId  String?
   url       String
-  altText   String?
   product   Product? @relation(fields: [productId], references: [id])
   Recipe Recipe? @relation(fields: [recipeId], references: [id])
 }

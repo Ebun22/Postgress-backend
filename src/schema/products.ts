@@ -11,12 +11,6 @@ export const ProductSchema = z.object({
   brand: z.string().optional(),
   SKU: z.string().optional(),
   stockQuantity: z.number().int(),
-  images: z.array(
-    z.object({
-      url: z.string().url(),
-      alt: z.string().optional(),
-    })
-  ),
   attributes: z.any(),
   rating: z.number().optional(),
   // reviews: z.array(

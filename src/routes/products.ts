@@ -15,6 +15,6 @@ productsRoutes.put("/:id", [authMiddleWare, adminMiddleWare], errorHandler(updat
 productsRoutes.patch("/:productid/", [authMiddleWare, adminMiddleWare], errorHandler(manageCategoriesOnProduct))
 productsRoutes.delete("/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteProduct))
 
-
+    
 
 export default productsRoutes;

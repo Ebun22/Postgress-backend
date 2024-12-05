@@ -8,52 +8,88 @@ import { Category, Image, Prisma, Product } from "@prisma/client"
 import { NotFoundException } from "../exceptions/not-found";
 import { BadRequestsException } from "../exceptions/bad-request";
 import cloudinary from "../cloudinary";
+import { UploadApiResponse } from "cloudinary";
 
 export const createProducts = async (req: Request, res: Response, next: NextFunction) => {
-    const validateProduct = ProductSchema.parse(req.body)
-    let { category, image, ...body } = req.body
+    const { price, stockQuantity, attributes, category, ...body } = req.body;
+
+    // Parse and transform inputs
+    const newPrice = Number(price);
+    const newStockQuantity = Number(stockQuantity);
+    const parsedCategory = JSON.parse(category)
+    const parsedAttribute = JSON.parse(attributes)
+
+
+    console.log("Parsed Category:", parsedCategory);
+    const files = req.files as Express.Multer.File[];
+
+    // Validate uploaded files
+    if (!files || files.length === 0) {
+        throw new Error("At least one image is required");
+    }
+    const validateProduct = ProductSchema.parse({
+        price: newPrice,
+        stockQuantity: newStockQuantity,
+        category: parsedCategory,
+        attributes: parsedAttribute,
+        ...body
+    })
 
     //UPLOAD AND IMAGE
+    let uploadResult: UploadApiResponse[];
     try {
-        const uploadResult = await Promise.all(
-            image.map((img: Image) => { 
-                cloudinary.uploader
-                .upload(img.url, {
-                    public_id: 'products',
+        uploadResult = await Promise.all(
+            files.map((img: Express.Multer.File) => {
+                return cloudinary.uploader.upload(img.path, {
                     folder: 'products',
                 }
                 )
             })
         )
-        console.log(uploadResult)
     } catch (err) {
         console.log("This error in image uppload: ", err)
         throw new BadRequestsException("Error uploading image")
     }
-    try {
-        const product = await prisma.product.create({
-            data: {
-                ...body,
-                category: {
-                    create: category.map((cat: Category) => ({
-                        name: cat.name,
-                        parentId: cat.parentId,
-                    }))
-                }
-            },
-        })
 
-        res.status(201).json({ status: 201, success: true, data: { ...product } })
-        return;
+    let productImages: Image[];
+    try {
+        return prisma.$transaction(async (tx) => {
+      
+            const product = await tx.product.create({
+                data: {
+                    ...validateProduct,
+                    category: {
+                        create: parsedCategory.map((cat: Category) => ({
+                            name: cat.name,
+                            parentId: cat.parentId,
+                        }))
+                    }
+                }
+            })
+            if(product){
+                productImages = await Promise.all(
+                    uploadResult.map((img: UploadApiResponse) =>
+                        tx.image.create({
+                            data: {
+                                productId: product.id,
+                                url: img.secure_url
+                            }
+                        }))
+                )
+         
+                return res.status(201).json({ status: 201, success: true, data: { ...product }});
+            }
+        })
+        
     } catch (err) {
         console.log(err)
+        throw new BadRequestsException("Category is undefined")
     }
 
 }
 
 export const updateProducts = async (req: Request, res: Response, next: NextFunction) => {
-    ProductUpdateSchma.parse(req.body);
-
+    ProductUpdateSchma.parse(req.body)
     const data = req.body;
     console.log(req.params.id)
     const product = await prisma.product.update({ where: { id: req.params.id }, data })
@@ -75,13 +111,18 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
     let cursorProduct
     const { limit = 1, cursor } = req.query
     if (cursor) {
-        cursorProduct = await prisma.product.findUnique({ where: { id: cursor as string } })
+        cursorProduct = await prisma.product.findUnique({ 
+            where: { id: cursor as string }})
 
         if (!cursorProduct) {
             throw new NotFoundException("Product id not found")
         }
     }
     const allProducts = await prisma.product.findMany({
+        include: {
+            category: true,
+            images: true
+        },
         take: +limit!,
         skip: cursor ? 1 : 0,
         cursor: cursorProduct ? { id: cursorProduct.id } : undefined,
@@ -119,13 +160,19 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
                     parentId: true
                 }
 
-            }
+            },
+            images: true
         }
     })
     if (product) {
         res.json({ success: true, status: 200, data: { ...product } })
         return;
     }
+}
+
+//delete product image
+export const deleteProductImage = async (req: Request, res: Response, next: NextFunction) => {
+
 }
 
 //connect and disconnect categories to products
