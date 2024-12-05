@@ -13,6 +13,10 @@ export const ProductSchema = z.object({
   stockQuantity: z.number().int(),
   attributes: z.any(),
   rating: z.number().optional(),
+  image:z
+  .instanceof(File, {
+    message: "Please select an image file.",
+  })
   // reviews: z.array(
   //   z.object({
   //     id: z.string(),
