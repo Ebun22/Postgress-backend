@@ -92,6 +92,7 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
 export const updateProducts = async (req: Request, res: Response, next: NextFunction) => {
     const { price, stockQuantity, attributes, category, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
+    let uploadResult: UploadApiResponse[];
 
     // Parse and transform inputs
     const newPrice = Number(price);
@@ -99,10 +100,6 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
     const parsedCategory = JSON.parse(category)
     const parsedAttribute = JSON.parse(attributes)
 
-    // Validate uploaded files
-    if (!files || files.length === 0) {
-        throw new Error("At least one image is required");
-    }
     const validateProduct = ProductUpdateSchma.parse({
         price: newPrice,
         stockQuantity: newStockQuantity,
@@ -110,21 +107,67 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
         ...body
     })
 
-    const data = validateProduct;
-    console.log(req.params.id)
-    const product = await prisma.product.update({
-        where: { id: req.params.id },
-        data: {
-            ...validateProduct,
-            category: {
-                create: parsedCategory.map((cat: Category) => ({
+    // If images are sent, add them  to cloudinary
+    if (files && Array.isArray(files) && files.length > 0) {
+        try {
+            uploadResult = await Promise.all(
+                files.map((img: Express.Multer.File) => {
+                    return cloudinary.uploader.upload(img.path, {
+                        folder: 'products',
+                        quality: 'auto',
+                        fetch_format: 'auto',
+                        crop: 'auto',
+                        gravity: 'auto'
+                    }
+                    )
+                })
+            )
+            console.log("Created nwe image: ", uploadResult)
+        } catch (err) {
+            console.log("This error in image upload: ", err)
+            throw new BadRequestsException("Error uploading image")
+        }
+    }
+    try {
+        const updatedProduct = await prisma.$transaction(async (tx) => {
+            const product = await tx.product.update({
+                where: { id: req.params.id },
+                data: {
+                    ...validateProduct,
+                    category: {
+                        create: parsedCategory.map((cat: Category) => ({
                             name: cat.name,
                             parentId: cat.parentId,
                         }))
+                    }
+                }
+            })
+            if (product) {
+                try {
+                    const createdImage = await Promise.all(
+                        uploadResult.map((img: UploadApiResponse) => {
+                            return tx.image.create({
+                                    data: {
+                                        productId: product.id,
+                                        url: img.secure_url
+                                    }
+                                })
+                        }
+                        )
+                    )
+                   console.log("This is image created successfully: ", createdImage)
+                } catch (err) {
+                    throw new BadRequestsException("Error adding image")
+                }
             }
-        }
-    })
-    res.json({ success: true, statusCoe: 200, data: { ...product } });
+
+            return product
+        })
+        return res.status(200).json({ status: 200, success: true, data: { ...updatedProduct } });
+    } catch (err) {
+        console.log("This error in image upload: ", err)
+        throw new NotFoundException("Error updating Product: Product with given id not found")
+    }
 }
 
 export const deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
