@@ -55,7 +55,7 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
     let productImages: Image[];
     try {
         return prisma.$transaction(async (tx) => {
-      
+
             const product = await tx.product.create({
                 data: {
                     ...validateProduct,
@@ -67,7 +67,7 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
                     }
                 }
             })
-            if(product){
+            if (product) {
                 productImages = await Promise.all(
                     uploadResult.map((img: UploadApiResponse) =>
                         tx.image.create({
@@ -77,11 +77,11 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
                             }
                         }))
                 )
-         
-                return res.status(201).json({ status: 201, success: true, data: { ...product }});
+
+                return res.status(201).json({ status: 201, success: true, data: { ...product } });
             }
         })
-        
+
     } catch (err) {
         console.log(err)
         throw new BadRequestsException("Category is undefined")
@@ -90,10 +90,40 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
 }
 
 export const updateProducts = async (req: Request, res: Response, next: NextFunction) => {
-    ProductUpdateSchma.parse(req.body)
-    const data = req.body;
+    const { price, stockQuantity, attributes, category, ...body } = req.body;
+    const files = req.files as Express.Multer.File[];
+
+    // Parse and transform inputs
+    const newPrice = Number(price);
+    const newStockQuantity = Number(stockQuantity);
+    const parsedCategory = JSON.parse(category)
+    const parsedAttribute = JSON.parse(attributes)
+
+    // Validate uploaded files
+    if (!files || files.length === 0) {
+        throw new Error("At least one image is required");
+    }
+    const validateProduct = ProductUpdateSchma.parse({
+        price: newPrice,
+        stockQuantity: newStockQuantity,
+        attributes: parsedAttribute,
+        ...body
+    })
+
+    const data = validateProduct;
     console.log(req.params.id)
-    const product = await prisma.product.update({ where: { id: req.params.id }, data })
+    const product = await prisma.product.update({
+        where: { id: req.params.id },
+        data: {
+            ...validateProduct,
+            category: {
+                create: parsedCategory.map((cat: Category) => ({
+                            name: cat.name,
+                            parentId: cat.parentId,
+                        }))
+            }
+        }
+    })
     res.json({ success: true, statusCoe: 200, data: { ...product } });
 }
 
@@ -111,8 +141,9 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
     let cursorProduct
     const { limit = 1, cursor } = req.query
     if (cursor) {
-        cursorProduct = await prisma.product.findUnique({ 
-            where: { id: cursor as string }})
+        cursorProduct = await prisma.product.findUnique({
+            where: { id: cursor as string }
+        })
 
         if (!cursorProduct) {
             throw new NotFoundException("Product id not found")
@@ -172,36 +203,59 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
 
 //delete a single product image
 export const deleteProductImageById = async (req: Request, res: Response, next: NextFunction) => {
-    const deletedImage = await prisma.image.delete({ where: { id: req.params.id } })
-    if (deletedImage) {
-        res.status(204).json()
-        return;
+    try {
+        const image = await prisma.image.findFirstOrThrow({ where: { id: req.params.id } });
+        const name = image.url.split('products/')[1].split('.')[0];
+
+        const cloudinaryDelete = await cloudinary.uploader.destroy(`products/${name.trim()}`);
+        if (cloudinaryDelete.result != 'ok') return;
+
+        const deletedImage = await prisma.image.delete({ where: { id: req.params.id } })
+        if (deletedImage) {
+            res.status(204).json()
+            return;
+        }
+    } catch (err) {
+        throw new NotFoundException("Image with given Id not found")
     }
+
 }
 
 export const deleteAllProductImage = async (req: Request, res: Response, next: NextFunction) => {
     let product: any;
     //delete all images tied to a particular product
-    try{
+    try {
         product = await prisma.product.findFirstOrThrow({
-                where: {id: req.params.id},
-                include: {
-                    images:true
-                }
-        }) 
-    }catch(err){
-        throw new NotFoundException("Product with given Id not found")  
+            where: { id: req.params.id },
+            include: {
+                images: true
+            }
+        })
+    } catch (err) {
+        throw new NotFoundException("Product with given Id not found")
     }
 
-    if(product.images.length == 0){ 
+    if (product.images.length == 0) {
         throw new BadRequestsException("No images found for this product")
-      }      
+    }
+    const cloudinaryDestroy = await Promise.all(
+        product.images.map((img: Image) => {
+            const name = img.url.split('products/')[1].split('.')[0]
+            return cloudinary.uploader.destroy(`products/${name.trim()}`)
+        })
+    )
+
+    if (cloudinaryDestroy[0].result == "ok") {
         const deletedProduct = await prisma.image.deleteMany({ where: { productId: req.params.id } })
         if (deletedProduct) {
             res.status(204).json()
             return;
         }
-    
+    } else {
+        throw new BadRequestsException("Image not found in cloud")
+    }
+
+
 }
 
 //connect and disconnect categories to products

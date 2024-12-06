@@ -14,8 +14,8 @@ productsRoutes.post("/", upload.array('images', 3), [authMiddleWare, adminMiddle
 productsRoutes.put("/:id", [authMiddleWare, adminMiddleWare], errorHandler(updateProducts))
 productsRoutes.patch("/:productid/", [authMiddleWare, adminMiddleWare], errorHandler(manageCategoriesOnProduct))
 productsRoutes.delete("/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteProduct))
-productsRoutes.delete("/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteProductImageById))
-productsRoutes.delete("/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteAllProductImage))
+productsRoutes.delete("/image/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteProductImageById))
+productsRoutes.delete("/image/all/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteAllProductImage))
 
 
 
