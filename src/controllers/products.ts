@@ -22,21 +22,22 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
 
     // Validate uploaded files
     if (!files || files.length === 0) {
-        throw new Error("At least one image is required");
+        throw new UnprocessableEntity("At least one image is required", {});
     }
     const validateProduct = ProductSchema.parse({
         price: newPrice,
         stockQuantity: newStockQuantity,
         category: parsedCategory,
         attributes: parsedAttribute,
+        images: files,
         ...body
     })
-
+    const {images, ...validatedProduct } = validateProduct 
     //UPLOAD AND IMAGE
     let uploadResult: UploadApiResponse[];
     try {
         uploadResult = await Promise.all(
-            files.map((img: Express.Multer.File) => {
+            images.map((img: Express.Multer.File) => {
                 return cloudinary.uploader.upload(img.path, {
                     folder: 'products',
                     quality: 'auto',
@@ -58,7 +59,7 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
 
             const product = await tx.product.create({
                 data: {
-                    ...validateProduct,
+                    ...validatedProduct,
                     category: {
                         create: parsedCategory.map((cat: Category) => ({
                             name: cat.name,
@@ -90,28 +91,33 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
 }
 
 export const updateProducts = async (req: Request, res: Response, next: NextFunction) => {
-    const { price, stockQuantity, attributes, category, ...body } = req.body;
+    const { price, stockQuantity, attributes, category, isFavourite, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
+    console.log("Edit product is running", files, req.body)
     let uploadResult: UploadApiResponse[];
-
+    
     // Parse and transform inputs
-    const newPrice = Number(price);
-    const newStockQuantity = Number(stockQuantity);
-    const parsedCategory = JSON.parse(category)
-    const parsedAttribute = JSON.parse(attributes)
-
+    const newPrice = price ? Number(price) : undefined;
+    const newStockQuantity = stockQuantity ? Number(stockQuantity) : undefined;
+    const parsedCategory = category ? JSON.parse(category) : undefined;
+    const parsedAttribute = attributes ? JSON.parse(attributes) : undefined;
+    const parsedFavourite = isFavourite === "true" ? true : isFavourite === "false" ? false : undefined;
+    
     const validateProduct = ProductUpdateSchma.parse({
         price: newPrice,
         stockQuantity: newStockQuantity,
+        category: parsedCategory,
         attributes: parsedAttribute,
+        isFavourite: parsedFavourite,
+        images: files || undefined,
         ...body
     })
-
-    // If images are sent, add them  to cloudinary
+    const {images, ...validatedProduct } = validateProduct 
+    //If images are sent, add them  to cloudinary
     if (files && Array.isArray(files) && files.length > 0) {
         try {
             uploadResult = await Promise.all(
-                files.map((img: Express.Multer.File) => {
+                images.map((img: Express.Multer.File) => {
                     return cloudinary.uploader.upload(img.path, {
                         folder: 'products',
                         quality: 'auto',
@@ -133,7 +139,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
             const product = await tx.product.update({
                 where: { id: req.params.id },
                 data: {
-                    ...validateProduct,
+                    ...validatedProduct,
                     category: {
                         create: parsedCategory.map((cat: Category) => ({
                             name: cat.name,
@@ -147,15 +153,15 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
                     const createdImage = await Promise.all(
                         uploadResult.map((img: UploadApiResponse) => {
                             return tx.image.create({
-                                    data: {
-                                        productId: product.id,
-                                        url: img.secure_url
-                                    }
-                                })
+                                data: {
+                                    productId: product.id,
+                                    url: img.secure_url
+                                }
+                            })
                         }
                         )
                     )
-                   console.log("This is image created successfully: ", createdImage)
+                    console.log("This is image created successfully: ", createdImage)
                 } catch (err) {
                     throw new BadRequestsException("Error adding image")
                 }

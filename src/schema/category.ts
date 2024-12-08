@@ -7,4 +7,6 @@ export const CategorySchema = z.object({
 })
 
 export const CategoryArraySchema = z.array(CategorySchema);
+
+export const UpdateCategorySchema = CategorySchema.partial();
    

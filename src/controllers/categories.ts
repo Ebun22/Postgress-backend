@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express"
-import { CategoryArraySchema, CategorySchema } from "../schema/category"
+import { CategoryArraySchema, UpdateCategorySchema } from "../schema/category"
 import { prisma } from "..";
 import { Category, Product } from "@prisma/client";
 import { NotFoundException } from "../exceptions/not-found";
@@ -37,6 +37,34 @@ export const createCategories = async (req: Request, res: Response, nexxt: NextF
 
 }
 
+export const updateCategory = async (req: Request, res: Response, nexxt: NextFunction) => {
+    const validateCategory = UpdateCategorySchema.parse(req.body);
+    
+    //if a parent id is sent, validate if its an existing category before appending
+    if (validateCategory.parentId !== null) {
+        try {
+            await prisma.category.findFirstOrThrow({ where: { id: validateCategory.parentId as string } })
+        } catch (err) {
+            throw new NotFoundException("Category Id to make parent doesn't exist")
+        }
+    }
+    try {
+        let category = await prisma.category.update({
+            where: { id: req.params.id as string },
+            data: {
+                name: validateCategory.name,
+                parentId: validateCategory.parentId ? validateCategory.parentId : null,
+            }
+        })
+
+        return res.status(200).json({ sccess: true, status: 200, data: { ...category } });
+    } catch (err) {
+        throw new NotFoundException("Category with given Id doesn't exist")
+    }
+
+}
+
+
 export const getAllCategories = async (req: Request, res: Response, nexxt: NextFunction) => {
     let categories = await prisma.category.findMany();
     return res.json({ success: true, status: 200, data: [...categories] })
@@ -66,7 +94,7 @@ export const deleteCategories = async (req: Request, res: Response, nexxt: NextF
                 }
             }
         })
-    }catch(err){
+    } catch (err) {
         console.log(err)
         // throw new NotFoundException("No Product")
     }
@@ -79,9 +107,9 @@ export const deleteCategories = async (req: Request, res: Response, nexxt: NextF
                 data: { parentId: null }
             });
 
-            if(productFound){
+            if (productFound) {
                 //if a category Id is connected to a product, disconnect it
-               await tx.category.update({
+                await tx.category.update({
                     where: {
                         id: req.params.id
                     },

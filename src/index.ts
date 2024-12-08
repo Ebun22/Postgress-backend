@@ -22,9 +22,9 @@ export const prisma = new PrismaClient().$extends({
     }
   }
 });
-;
 
 const app: Express = express()
+
 app.use(express.json());
 
 app.use('/api', rootRouter);
@@ -34,12 +34,6 @@ app.listen(PORT, () => console.log("App working!"))
 
 //prisma
 async function main() {
-  // await prisma.user.create({
-  //     data: {
-  //         name: 'JaneDoe',
-  //         email: 'janeDoe@prisma.com',
-  //     }
-  // })
   const allUsers = await prisma.user.findMany()
   console.log(allUsers)
 }
