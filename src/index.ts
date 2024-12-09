@@ -9,13 +9,7 @@ dotenv.config({path: '.env'});
 
 export const DATABASE_URL = process.env.NODE_ENV === "production" ? process.env.DATABASE_URL_PROD :  process.env.DATABASE_URL_DEV;
 
-export const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: `${DATABASE_URL}`,
-    },
-  },
-}).$extends({
+export const prisma = new PrismaClient().$extends({
   result: {
     shippingAddress: {
       formattedAddress: {
