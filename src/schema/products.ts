@@ -2,7 +2,7 @@ import { z } from "zod";
 import { CategoryArraySchema } from "./category";
 import { File } from "buffer";
 
-const MAX_IMAGE_SIZE = 1 * 1024 * 1024; // max image 1.5MB
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // max image 1.5MB
 
 export const ProductSchema = z.object({
   name: z.string().min(2),

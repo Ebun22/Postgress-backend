@@ -3,8 +3,19 @@ import express, { Express, Request, Response } from 'express';
 import rootRouter from './routes';
 import { PORT } from './secrets.ts';
 import { errorMiddleware } from './middlewares/errors.ts';
+import dotenv from 'dotenv';
 
-export const prisma = new PrismaClient().$extends({
+dotenv.config({path: '.env'});
+
+export const DATABASE_URL = process.env.NODE_ENV === "production" ? process.env.DATABASE_URL_PROD :  process.env.DATABASE_URL_DEV;
+
+export const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: `${DATABASE_URL}`,
+    },
+  },
+}).$extends({
   result: {
     shippingAddress: {
       formattedAddress: {
@@ -25,12 +36,12 @@ export const prisma = new PrismaClient().$extends({
 
 const app: Express = express()
 
+app.disable('x-powered-by')
 app.use(express.json());
 
 app.use('/api', rootRouter);
 app.use(errorMiddleware);
 app.listen(PORT, () => console.log("App working!"))
-
 
 //prisma
 async function main() {

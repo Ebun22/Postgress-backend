@@ -121,7 +121,11 @@ model Recipe {
 
   @@map("recipes")
 }
-
+model ShippingPrice{
+    id         String   @id @default(cuid())
+    location String
+    price Float
+}
 model RecipeProducts {
   id         String   @id @default(cuid())
   quantity   Int
@@ -141,12 +145,12 @@ model Category {
 }
 
 model Image {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   productId String?
   recipeId  String?
   url       String
   product   Product? @relation(fields: [productId], references: [id])
-  Recipe Recipe? @relation(fields: [recipeId], references: [id])
+  Recipe    Recipe?  @relation(fields: [recipeId], references: [id])
 }
 
 model Review {
