@@ -4,9 +4,9 @@
   "main": "./src/index.js",
   "type": "module",
   "scripts": {
-    "start": "set NODE_ENV=production && npx tsx ./src/index.ts",
+    "start": "set NODE_ENV=production && dotenv -e env.dev -- prisma migrate deploy && prisma generate -- npx tsx ./src/index.ts",
     "prestart": "prisma migrate deploy && prisma generate",
-    "dev": "set NODE_ENV=development && npx nodemon",
+    "dev": "set NODE_ENV=development && dotenv -e env.dev -- prisma generate -- npx nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -33,6 +33,7 @@
     "body-parser": "^1.20.3",
     "cloudinary": "^2.5.1",
     "dotenv": "^16.4.5",
+    "dotenv-cli": "^7.4.4",
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
