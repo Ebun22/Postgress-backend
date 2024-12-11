@@ -12,10 +12,11 @@ import { UploadApiResponse } from "cloudinary";
 import { RecipeSchema } from "../schema/recipe";
 
 export const createRecipe = async (req: Request, res: Response, next: NextFunction) => {
-    const { ratings, productIds, ...body } = req.body;
+    const { ratings, product, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
 
     const newRatings = Number(ratings);
+    const newProduct = JSON.parse(product);
 
     // Validate uploaded files
     if (!files || files.length === 0) {
@@ -24,17 +25,18 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
 
     const validateRecipe = RecipeSchema.parse({
         ratings: newRatings,
-        images: files,
+        image: files,
         ...body
     });
 
-    const { images, ...validatedRecipe } = validateRecipe;
+    const { image, ...validatedRecipe } = validateRecipe;
+    console.log("THESE ARE IMAGES< validateRecipe: ", files, newProduct, validatedRecipe)
 
     //UPLOAD AND IMAGE
     let uploadResult: UploadApiResponse[];
     try {
         uploadResult = await Promise.all(
-            images.map((img: Express.Multer.File) => {
+            image.map((img: Express.Multer.File) => {
                 return cloudinary.uploader.upload(img.path, {
                     folder: 'products',
                     quality: 'auto',
@@ -49,13 +51,14 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
         console.log("This error in image upload: ", err)
         throw new BadRequestsException("Error uploading image")
     }
-    if (productIds) {
+    if (newProduct) {
         try {
-            await Promise.all(
-                productIds.map((id: string) => {
-                    return prisma.product.findFirstOrThrow({ where: { id } })
+            const product = await Promise.all(
+                newProduct.map((id: { Id: string }) => {
+                    return prisma.product.findFirstOrThrow({ where: { id: id.Id } })
                 })
             )
+            console.log(product)
         } catch (err) {
             throw new NotFoundException("Product with given Id doesn't exist")
         }
@@ -64,14 +67,7 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
         return prisma.$transaction(async (tx) => {
             const recipe = await tx.recipe.create({
                 data: {
-                    ...validatedRecipe,
-                    product: {
-                        connect: productIds.map((id: string) => id)
-                    }
-                },
-                include: {
-                    image: true,
-                    product: true
+                    ...validatedRecipe
                 }
             })
             if (recipe) {
@@ -84,14 +80,22 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
                             }
                         }))
                 )
-                return res.status(201).json({ status: 201, success: true, data: { ...recipe } });
+                await Promise.all(
+                    newProduct?.map((item: { Id: string }) => {
+                        return {
+                            productId: item.Id,
+                            recipeId: recipe.id
+                        };
+                    })
+                )
             }
+            return res.status(201).json({ status: 201, success: true, data: { ...recipe } });
         })
 
     } catch (err) {
-        console.log(err)
-        throw new BadRequestsException("Recipe not propery created")
-    }
+    console.log(err)
+    throw new BadRequestsException("Recipe not propery created")
+}
 
 }
 
@@ -232,24 +236,18 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
     }
 }
 
-export const getProductById = async (req: Request, res: Response, next: NextFunction) => {
-    const product = await prisma.product.findFirstOrThrow({
+export const getRecipeById = async (req: Request, res: Response, next: NextFunction) => {
+    const recipe = await prisma.recipe.findFirstOrThrow({
         where: {
             id: req.params.id
         },
         include: {
-            category: {
-                select: {
-                    name: true,
-                    parentId: true
-                }
-
-            },
-            images: true
+            product: true,
+            image: true
         }
     })
-    if (product) {
-        res.json({ success: true, status: 200, data: { ...product } })
+    if (recipe) {
+        res.json({ success: true, status: 200, data: { ...recipe } })
         return;
     }
 }

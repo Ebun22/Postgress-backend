@@ -128,7 +128,7 @@ model ShippingPrice{
 }
 model RecipeProducts {
   id         String   @id @default(cuid())
-  quantity   Int
+  // quantity   Int
   productId  String   @unique
   recipeId   String   @unique
   ingredient Product  @relation(fields: [productId], references: [id])
