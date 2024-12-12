@@ -64,38 +64,34 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
         }
     }
     try {
-        return prisma.$transaction(async (tx) => {
-            const recipe = await tx.recipe.create({
-                data: {
-                    ...validatedRecipe
-                }
-            })
-            if (recipe) {
-                await Promise.all(
-                    uploadResult.map((img: UploadApiResponse) =>
-                        tx.image.create({
-                            data: {
-                                recipeId: recipe.id,
-                                url: img.secure_url
-                            }
-                        }))
-                )
-                await Promise.all(
-                    newProduct?.map((item: { Id: string }) => {
-                        return {
-                            productId: item.Id,
-                            recipeId: recipe.id
-                        };
-                    })
-                )
-            }
-            return res.status(201).json({ status: 201, success: true, data: { ...recipe } });
-        })
 
+        const recipe = await prisma.recipe.create({
+            data: {
+                ...validatedRecipe,
+                image: {
+                    create: uploadResult.map((img: UploadApiResponse) => ({
+                        url: img.secure_url
+                    }))
+                },
+                product: {
+                    create: newProduct?.map((item: { Id: string }) => ({
+                        productId: item.Id,
+                    })),
+                },
+            }, include: {
+                image: true,
+                product: {
+                    select: {
+                        productId: true
+                    }
+                }
+            }
+        })
+        return res.status(201).json({ status: 201, success: true, data: { ...recipe } });
     } catch (err) {
-    console.log(err)
-    throw new BadRequestsException("Recipe not propery created")
-}
+        console.log(err)
+        throw new BadRequestsException("Recipe not propery created")
+    }
 
 }
 

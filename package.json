@@ -4,9 +4,8 @@
   "main": "./src/index.js",
   "type": "module",
   "scripts": {
-    "start": "set NODE_ENV=production && dotenv -e env.dev -- prisma migrate deploy && prisma generate -- npx tsx ./src/index.ts",
-    "prestart": "prisma migrate deploy && prisma generate",
-    "dev": "set NODE_ENV=development && dotenv -e env.dev -- prisma generate -- npx nodemon",
+    "start": "dotenv -e .env.prod prisma generate && dotenv -e .env.prod prisma migrate deploy && dotenv -e .env.prod -- npx tsx ./src/index.ts",
+    "dev": "dotenv -e .env.dev prisma generate && dotenv -e .env.dev -- npx nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
