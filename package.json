@@ -4,7 +4,7 @@
   "main": "./src/index.js",
   "type": "module",
   "scripts": {
-    "start": "dotenv -e .env.prod prisma generate && dotenv -e .env.prod prisma migrate deploy && dotenv -e .env.prod -- npx tsx ./src/index.ts",
+    "start": "npx tsx ./src/index.ts",
     "dev": "dotenv -e .env.dev prisma generate && dotenv -e .env.dev -- npx nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
