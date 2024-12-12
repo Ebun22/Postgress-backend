@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { CategoryArraySchema } from "./category";
 
 // const MAX_IMAGE_SIZE = 1 * 1024 * 1024; // max image 1.5MB
 

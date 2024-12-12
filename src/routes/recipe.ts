@@ -9,14 +9,14 @@ import { createRecipe, getRecipeById } from "../controllers/recipe";
 
 const recipeRoutes: Router = Router()
 
-recipeRoutes.get("/", errorHandler(getAllProducts))
+// recipeRoutes.get("/", errorHandler(getAllProducts))
 recipeRoutes.get("/:id", errorHandler(getRecipeById))
 recipeRoutes.post("/", upload.array('image', 3), [authMiddleWare, adminMiddleWare], errorHandler(createRecipe))
-recipeRoutes.put("/:id", upload.array('images', 3), [authMiddleWare, adminMiddleWare], errorHandler(updateProducts))
-recipeRoutes.patch("/:productid/", [authMiddleWare, adminMiddleWare], errorHandler(manageCategoriesOnProduct))
-recipeRoutes.delete("/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteProduct))
-recipeRoutes.delete("/image/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteProductImageById))
-recipeRoutes.delete("/image/all/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteAllProductImage))
+// recipeRoutes.put("/:id", upload.array('images', 3), [authMiddleWare, adminMiddleWare], errorHandler(updateProducts))
+// recipeRoutes.patch("/:productid/", [authMiddleWare, adminMiddleWare], errorHandler(manageCategoriesOnProduct))
+// recipeRoutes.delete("/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteProduct))
+// recipeRoutes.delete("/image/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteProductImageById))
+// recipeRoutes.delete("/image/all/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteAllProductImage))
 
 
 export default recipeRoutes;
