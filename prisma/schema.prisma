@@ -71,7 +71,7 @@ model Product {
   SKU           String?
   //mark quantity as out of stock if SQ is zero
   stockQuantity Int
-  attributes    Json? // For storing dynamic attributes like size, color, weight
+  variant       Json? // For storing dynamic attributes like size, color, weight
   rating        Float? // Optional rating average
   reviews       Review[] // Relation to a Review model
   isFavourite   Boolean  @default(false)
@@ -121,16 +121,24 @@ model Recipe {
 
   @@map("recipes")
 }
-model ShippingPrice{
-    id         String   @id @default(cuid())
-    location String
-    price Float
+
+model Delivery {
+  id        String   @id @default(cuid())
+endTime  location  String
+  price     Float
+  startDate DateTime
+  endDate   DateTime
+  startTime String
+     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
+
 model RecipeProducts {
   id         String   @id @default(cuid())
   // quantity   Int
-  productId  String   
-  recipeId   String   
+  productId  String
+  recipeId   String
   ingredient Product  @relation(fields: [productId], references: [id])
   recipe     Recipe   @relation(fields: [recipeId], references: [id])
   createdAt  DateTime @default(now())

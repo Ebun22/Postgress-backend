@@ -4,12 +4,16 @@ import { UnprocessableEntity } from "../exceptions/validation";
 import { InternalException } from "../exceptions/internal-exception";
 import { ProductSchema, ProductUpdateSchma } from "../schema/products";
 import { prisma } from "..";
-import { Category, Image, Prisma, Product } from "@prisma/client"
+import { Category, Image, Prisma, Product, Recipe } from "@prisma/client"
 import { NotFoundException } from "../exceptions/not-found";
 import { BadRequestsException } from "../exceptions/bad-request";
 import cloudinary from "../cloudinary";
 import { UploadApiResponse } from "cloudinary";
-import { RecipeSchema } from "../schema/recipe";
+import { RecipeSchema, RecipeUpdateSchma } from "../schema/recipe";
+
+type RecipeWithImages = Recipe & {
+    image: Image[];
+};
 
 export const createRecipe = async (req: Request, res: Response, next: NextFunction) => {
     const { ratings, product, ...body } = req.body;
@@ -38,7 +42,7 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
         uploadResult = await Promise.all(
             image.map((img: Express.Multer.File) => {
                 return cloudinary.uploader.upload(img.path, {
-                    folder: 'products',
+                    folder: 'recipes',
                     quality: 'auto',
                     fetch_format: 'auto',
                     crop: 'auto',
@@ -51,6 +55,7 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
         console.log("This error in image upload: ", err)
         throw new BadRequestsException("Error uploading image")
     }
+    //verify if product id sent is valid
     if (newProduct) {
         try {
             const product = await Promise.all(
@@ -64,12 +69,11 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
         }
     }
     try {
-
         const recipe = await prisma.recipe.create({
             data: {
                 ...validatedRecipe,
                 image: {
-                    create: uploadResult.map((img: UploadApiResponse) => ({
+                    create: uploadResult?.map((img: UploadApiResponse) => ({
                         url: img.secure_url
                     }))
                 },
@@ -95,35 +99,46 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
 
 }
 
-export const updateProducts = async (req: Request, res: Response, next: NextFunction) => {
-    const { price, stockQuantity, attributes, category, isFavourite, ...body } = req.body;
+export const updateRecipe = async (req: Request, res: Response, next: NextFunction) => {
+    const { ratings, product, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
-    console.log("Edit product is running", files, req.body)
-    let uploadResult: UploadApiResponse[];
+
+    console.log("Edit recipe is running", files, req.body)
+    let uploadResult: UploadApiResponse[] = [];
 
     // Parse and transform inputs
-    const newPrice = price ? Number(price) : undefined;
-    const newStockQuantity = stockQuantity ? Number(stockQuantity) : undefined;
-    const parsedCategory = category ? JSON.parse(category) : undefined;
-    const parsedAttribute = attributes ? JSON.parse(attributes) : undefined;
-    const parsedFavourite = isFavourite === "true" ? true : isFavourite === "false" ? false : undefined;
+    const newRatings = ratings ? Number(ratings) : undefined;
+    const newProduct = product ? JSON.parse(product) : undefined;
+    console.log("This is the new poroduct: ", newProduct);
 
-    const validateProduct = ProductUpdateSchma.parse({
-        price: newPrice,
-        stockQuantity: newStockQuantity,
-        category: parsedCategory,
-        attributes: parsedAttribute,
-        isFavourite: parsedFavourite,
+    const validateRecipe = RecipeUpdateSchma.parse({
+        ratings: newRatings,
+        image: files,
         ...body
-    })
-    console.log("This is the validated products: ", validateProduct);
+    });
+    
+    console.log("This is the validated Recipe: ", validateRecipe);
+    //validate if product exists
+    if (newProduct) {
+        try {
+            const product = await Promise.all(
+                newProduct.map((id: { Id: string }) => {
+                    return prisma.product.findFirstOrThrow({ where: { id: id.Id } })
+                })
+            )
+            console.log(product)
+        } catch (err) {
+            throw new NotFoundException("Product with given Id doesn't exist")
+        }
+    }
+
     //If images are sent, add them  to cloudinary
     if (files && Array.isArray(files) && files.length > 0) {
         try {
             uploadResult = await Promise.all(
                 files.map((img: Express.Multer.File) => {
                     return cloudinary.uploader.upload(img.path, {
-                        folder: 'products',
+                        folder: 'recipes',
                         quality: 'auto',
                         fetch_format: 'auto',
                         crop: 'auto',
@@ -132,100 +147,89 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
                     )
                 })
             )
-            console.log("Created nwe image: ", uploadResult)
+            console.log("Created new image: ", uploadResult)
         } catch (err) {
             console.log("This error in image upload: ", err)
             throw new BadRequestsException("Error uploading image")
         }
     }
+
+    //update receipe
     try {
-        const updatedProduct = await prisma.$transaction(async (tx) => {
-            const product = await tx.product.update({
-                where: { id: req.params.id },
-                data: {
-                    ...validateProduct,
-                    category: {
-                        create: parsedCategory.map((cat: Category) => ({
-                            name: cat.name,
-                            parentId: cat.parentId,
-                        }))
-                    }
-                }
-            })
-            if (product) {
-                try {
-                    const createdImage = await Promise.all(
-                        uploadResult.map((img: UploadApiResponse) => {
-                            return tx.image.create({
-                                data: {
-                                    productId: product.id,
-                                    url: img.secure_url
-                                }
-                            })
-                        }
-                        )
-                    )
-                    console.log("This is image created successfully: ", createdImage)
-                } catch (err) {
-                    throw new BadRequestsException("Error adding image")
+        const updatedRecipe = await prisma.recipe.update({
+            where: { id: req.params.id },
+            data: {
+                ...validateRecipe,
+                image: {
+                    create: uploadResult.map((img: UploadApiResponse) => ({
+                        url: img.secure_url
+                    })),
+                },
+                product: {
+                    create: newProduct?.map((item: { Id: string }) => ({
+                        productId: item.Id,
+                    })),
                 }
             }
-
-            return product
         })
-        return res.status(200).json({ status: 200, success: true, data: { ...updatedProduct } });
+        return res.status(200).json({ status: 200, success: true, data: { ...updatedRecipe } });
     } catch (err) {
         console.log("This error in image upload: ", err)
-        throw new NotFoundException("Error updating Product: Product with given id not found")
+        throw new NotFoundException("Error updating recipe: Recipe with given id not found")
     }
 }
 
-export const deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
-    const deletedProduct = await prisma.product.delete({ where: { id: req.params.id } })
-    if (deletedProduct) {
+export const deleteRecipe = async (req: Request, res: Response, next: NextFunction) => {
+    const deletedRecipe = await prisma.recipe.delete({ where: { id: req.params.id } })
+    if (deletedRecipe) {
         res.status(204).json()
         return;
     }
 }
 
-export const getAllProducts = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllRecipes = async (req: Request, res: Response, next: NextFunction) => {
     //handle pagination
-    const totalProduct = await prisma.product.count();
-    let cursorProduct
-    const { limit = 1, cursor } = req.query
+    const totalRecipe = await prisma.recipe.count();
+    let cursorRecipe
+    const { limit, cursor } = req.query
+    const finalLimit = limit || totalRecipe
+
     if (cursor) {
-        cursorProduct = await prisma.product.findUnique({
+        cursorRecipe = await prisma.recipe.findUnique({
             where: { id: cursor as string }
         })
 
-        if (!cursorProduct) {
-            throw new NotFoundException("Product id not found")
+        if (!cursorRecipe) {
+            throw new NotFoundException("Recipe id not found")
         }
     }
-    const allProducts = await prisma.product.findMany({
+    const allRecipe = await prisma.recipe.findMany({
         include: {
-            category: true,
-            images: true
+            // product: true,
+            image: true
         },
-        take: +limit!,
+        take: +finalLimit!,
         skip: cursor ? 1 : 0,
-        cursor: cursorProduct ? { id: cursorProduct.id } : undefined,
+        cursor: cursorRecipe ? { id: cursorRecipe.id } : undefined,
         orderBy: { id: 'asc' }
     });
-
-    if (allProducts.length == 0 && cursor) {
+    if (allRecipe.length == 0) {
+        console.log("This is all the recipes: ", allRecipe)
+        throw new NotFoundException("No more Recipes found")
+    }
+    if (allRecipe.length == 0 && cursor) {
         throw new BadRequestsException("Invalid Cursor sent")
     }
 
-    //handle main get all product
-    if (allProducts) {
-        console.log("This is the last product: ", allProducts[allProducts.length - 1].id, allProducts.length)
-        const nextCursor = (allProducts.length == limit) ? allProducts[allProducts.length - 1].id : null
+    //handle main get all recipe
+    if (allRecipe) {
+        console.log("This is the last Recipe: ", allRecipe[allRecipe.length - 1].id, allRecipe.length)
+        const nextCursor = (allRecipe.length == finalLimit) ? allRecipe[allRecipe.length - 1].id : null
         res.json({
-            success: true, statusCode: 200, data: [...allProducts], pagination: {
+            success: true, statusCode: 200, data: [...allRecipe], pagination: {
                 // currentPage: currentPage += 1,
-                totaPages: Math.ceil(totalProduct / Number(limit)),
-                nextPageURL: `${req.protocol}://${req.get('host')}${req.path}api/product/?limit=${limit}&cursor=${nextCursor}`
+                totaPages: Math.ceil(totalRecipe / Number(finalLimit)),
+                nextPageURL: `${req.protocol}://${req.get('host')}${req.path}api/recipe/?limit=${finalLimit}&cursor=${nextCursor}`
             }
         })
         return;
@@ -248,13 +252,13 @@ export const getRecipeById = async (req: Request, res: Response, next: NextFunct
     }
 }
 
-//delete a single product image
-export const deleteProductImageById = async (req: Request, res: Response, next: NextFunction) => {
+//delete a single recipe image
+export const deleteRecipeImageById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const image = await prisma.image.findFirstOrThrow({ where: { id: req.params.id } });
-        const name = image.url.split('products/')[1].split('.')[0];
+        const name = image.url.split('recipes/')[1].split('.')[0];
 
-        const cloudinaryDelete = await cloudinary.uploader.destroy(`products/${name.trim()}`);
+        const cloudinaryDelete = await cloudinary.uploader.destroy(`recipes/${name.trim()}`);
         if (cloudinaryDelete.result != 'ok') return;
 
         const deletedImage = await prisma.image.delete({ where: { id: req.params.id } })
@@ -266,35 +270,35 @@ export const deleteProductImageById = async (req: Request, res: Response, next: 
         throw new NotFoundException("Image with given Id not found")
     }
 
-}
+};
 
-export const deleteAllProductImage = async (req: Request, res: Response, next: NextFunction) => {
-    let product: any;
+export const deleteAllRecipeImage = async (req: Request, res: Response, next: NextFunction) => {
+    let recipe: RecipeWithImages;
     //delete all images tied to a particular product
     try {
-        product = await prisma.product.findFirstOrThrow({
+        recipe = await prisma.recipe.findFirstOrThrow({
             where: { id: req.params.id },
             include: {
-                images: true
+                image: true
             }
         })
     } catch (err) {
-        throw new NotFoundException("Product with given Id not found")
+        throw new NotFoundException("Recipe with given Id not found")
     }
 
-    if (product.images.length == 0) {
-        throw new BadRequestsException("No images found for this product")
+    if (recipe.image.length == 0) {
+        throw new BadRequestsException("No images found for this recipe")
     }
     const cloudinaryDestroy = await Promise.all(
-        product.images.map((img: Image) => {
-            const name = img.url.split('products/')[1].split('.')[0]
-            return cloudinary.uploader.destroy(`products/${name.trim()}`)
+        recipe.image.map((img: Image) => {
+            const name = img.url.split('recipes/')[1].split('.')[0]
+            return cloudinary.uploader.destroy(`recipes/${name.trim()}`)
         })
     )
 
     if (cloudinaryDestroy[0].result == "ok") {
-        const deletedProduct = await prisma.image.deleteMany({ where: { productId: req.params.id } })
-        if (deletedProduct) {
+        const deletedRecipeImage = await prisma.image.deleteMany({ where: { recipeId: req.params.id } })
+        if (deletedRecipeImage) {
             res.status(204).json()
             return;
         }
@@ -304,48 +308,3 @@ export const deleteAllProductImage = async (req: Request, res: Response, next: N
 
 
 }
-
-//connect and disconnect categories to products
-export const manageCategoriesOnProduct = async (req: Request, res: Response, next: NextFunction) => {
-    const { productid } = req.params;
-    const { connect, disconnect } = req.query;
-
-    const updateCategories: { category?: any } = {}
-
-    //check if conect id is a valid category id
-    const categoryExists = async (id: string) => {
-        try {
-            await prisma.category.findFirst({ where: { id } })
-        } catch (err) {
-            throw new NotFoundException("Category with provided Id doesn't exist")
-        }
-    }
-
-    if (connect) {
-        categoryExists(connect as string)
-        updateCategories.category = {
-            connect: { id: connect }
-        }
-    }
-
-    if (disconnect) {
-        categoryExists(connect as string)
-        updateCategories.category = {
-            disconnect: { id: disconnect }
-        }
-    }
-
-    try {
-        const product = await prisma.product.update({
-            where: { id: productid },
-            data: updateCategories,
-            include: { category: true }
-        });
-
-        return res.json({ success: true, status: 200, data: { ...product } })
-    } catch (err) {
-        console.log(err)
-        throw new NotFoundException("Product with provided Id doesn't exist")
-    }
-}
-

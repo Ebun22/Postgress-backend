@@ -5,7 +5,7 @@ import { Category, Product } from "@prisma/client";
 import { NotFoundException } from "../exceptions/not-found";
 import { disconnect } from "process";
 
-export const createCategories = async (req: Request, res: Response, nexxt: NextFunction) => {
+export const createCategories = async (req: Request, res: Response, next: NextFunction) => {
     const validateCategory = CategoryArraySchema.parse(req.body);
     let existingId: Category | null;
     validateCategory.map(async (data) => {
@@ -37,7 +37,7 @@ export const createCategories = async (req: Request, res: Response, nexxt: NextF
 
 }
 
-export const updateCategory = async (req: Request, res: Response, nexxt: NextFunction) => {
+export const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
     const validateCategory = UpdateCategorySchema.parse(req.body);
     
     //if a parent id is sent, validate if its an existing category before appending
@@ -65,12 +65,12 @@ export const updateCategory = async (req: Request, res: Response, nexxt: NextFun
 }
 
 
-export const getAllCategories = async (req: Request, res: Response, nexxt: NextFunction) => {
+export const getAllCategories = async (req: Request, res: Response, next: NextFunction) => {
     let categories = await prisma.category.findMany();
     return res.json({ success: true, status: 200, data: [...categories] })
 }
 
-export const getCategoriesById = async (req: Request, res: Response, nexxt: NextFunction) => {
+export const getCategoriesById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         let category = await prisma.category.findFirstOrThrow({
             where: { id: req.params.id },
@@ -84,7 +84,7 @@ export const getCategoriesById = async (req: Request, res: Response, nexxt: Next
     }
 }
 
-export const deleteCategories = async (req: Request, res: Response, nexxt: NextFunction) => {
+export const deleteCategories = async (req: Request, res: Response, next: NextFunction) => {
     let productFound: Product[];
     try {
         productFound = await prisma.product.findMany({
