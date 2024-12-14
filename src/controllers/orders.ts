@@ -7,6 +7,7 @@ import { NotFoundException } from "../exceptions/not-found"
 import { STRIPE_API_KEY } from "../secrets";
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user.defaultShippingAddressId) return res.json({ success: true, message: "No address is set as default" })
     try {
         await prisma.$transaction(async (tx) => {
             const cart = await tx.cart.findFirst({
@@ -60,7 +61,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
                 }
             })
 
-            await tx.cart.deleteMany({ where: { userId: req.user.id } })
+            await tx.cartItem.deleteMany({ where: { cartId: cart.id } })
             return res.json({ success: true, status: 201, data: { ...order } })
         })
 
@@ -78,20 +79,42 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
 
     const orderId = req.params.orderId
 
-    const order = await prisma.order.findFirst({ where: { id: orderId } })
+    const order = await prisma.order.findFirst({
+        where: { id: orderId },
+        include: {
+            products: {
+                select: {
+                    quantity: true,
+                    product: {
+                        select: {
+                            name: true, 
+                            price: true
+                        },
+                    },
+                }
+            }
+        }
+    })
     if (!order) throw new NotFoundException("This order doesn't exist");
-    console.log("This is the order: ", order);
+    console.log("This is the order: ", order.products[0].product);
 
-    // const session = await stripe.checkout.sessions.create({
-    //     success_url: 'https://example.com/success',
-    //     line_items: [
-    //         {
-    //             price: 'price_1MotwRLkdIwHu7ixYcPLm5uZ',
-    //             quantity: 2,
-    //         },
-    //     ],
-    //     mode: 'payment',
-    // });
+    const session = await stripe.checkout.sessions.create({
+        line_items: order.products.map(({ quantity, product }) => ({
+            price_data: {
+                currency: "usd",
+                product_data: {
+                    name: product.name 
+                },
+                unit_amount: product.price * 100
+            },
+            quantity
+        })),
+        mode: 'payment',
+        success_url: 'https://example.com/success',
+        cancel_url: 'https://example.com/success',
+    });
+
+    console.log("This is the session: ", session)
 }
 
 export const listOrders = async (req: Request, res: Response, next: NextFunction) => {
