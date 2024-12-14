@@ -11,5 +11,5 @@ export const DeliverySchema = z.object({
 
 export const DeliveryArraySchema = z.array(DeliverySchema);
 
-export const UpdateDeliverySchema = DeliverySchema.partial();
+export const UpdateDeliverySchema = DeliverySchema.partial().strict();
    

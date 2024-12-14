@@ -17,4 +17,4 @@ export const RecipeSchema = z.object({
         // }, "Image size is too large, image should be less than or equal to 1mb")
 })
 
-export const RecipeUpdateSchma = RecipeSchema.partial(); 
+export const RecipeUpdateSchma = RecipeSchema.partial().strict(); 

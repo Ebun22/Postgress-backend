@@ -2,57 +2,63 @@ import { NextFunction, Request, Response } from "express";
 import { prisma } from "..";
 import { Category, Delivery, Product } from "@prisma/client";
 import { NotFoundException } from "../exceptions/not-found";
-import { DeliveryArraySchema } from "../schema/delivery";
+import { DeliveryArraySchema, DeliverySchema, UpdateDeliverySchema } from "../schema/delivery";
+import { BadRequestsException } from "../exceptions/bad-request";
 
 export const createDelivery = async (req: Request, res: Response, next: NextFunction) => {
-    const { startDate, endDate, price, ...body } = req.body;
+    const validateDelivery = req.body.map(({ startDate, endDate, price, ...body }: any) => {
+        // const { startDate, endDate, price, ...body } = req.body;
+        const parsedStartDate = new Date(startDate);
+        const parsedEndDate = new Date(endDate);
+        const parsedPrice = parseFloat(price);
 
-    const parsedStartDate = new Date(startDate);
-    const parsedEndDate = new Date(endDate);
-    const parsedPrice = parseFloat(price);
+        const delivery = DeliverySchema.parse({
+            endDate: parsedEndDate,
+            startDate: parsedStartDate,
+            price: parsedPrice,
+            ...body
+        });
+        return delivery;
+    })
 
-    const validateDelivery = DeliveryArraySchema.parse({
-        parsedEndDate,
-        parsedStartDate,
-        parsedPrice,
+    console.log("Thsi si the validated delivery: ", validateDelivery)
+    let delivery = await prisma.delivery.createMany({
+        data: validateDelivery.map((deliveryData: any) => ({ ...deliveryData }))
+    })
+    console.log("This is teh created Delivery: ", delivery)
+
+    return res.status(201).json({ sccess: true, status: 201, message: `${delivery.count} Deliveries successfully created` })
+}
+
+export const updateDelivery = async (req: Request, res: Response, next: NextFunction) => {
+    const { startDate, endDate, price, ...body } = req.body
+
+    const parsedStartDate = startDate ? new Date(startDate) : undefined;
+    const parsedEndDate = endDate ? new Date(endDate): undefined;
+    const parsedPrice = price ? parseFloat(price) : undefined;
+
+    const validateDelivery = UpdateDeliverySchema.parse({
+        endDate: parsedEndDate,
+        startDate: parsedStartDate,
+        price: parsedPrice,
         ...body
     });
 
-
-    //if parent id is null, then just apend it
-    let delivery = await prisma.delivery.createMany({
-        data: validateDelivery.map((deliveryData: Delivery) => ({ ...deliveryData }))
-    })
-
-    return res.status(201).json({ sccess: true, status: 201, data: { ...delivery } })
-
-
-
-}
-
-export const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
-    const validateCategory = UpdateCategorySchema.parse(req.body);
-
     //if a parent id is sent, validate if its an existing category before appending
-    if (validateCategory.parentId !== null) {
-        try {
-            await prisma.category.findFirstOrThrow({ where: { id: validateCategory.parentId as string } })
-        } catch (err) {
-            throw new NotFoundException("Category Id to make parent doesn't exist")
-        }
+    if (!req.params.id) {
+        throw new BadRequestsException("Request param of id is required on this route")
     }
     try {
-        let category = await prisma.category.update({
+        let delivery = await prisma.delivery.update({
             where: { id: req.params.id as string },
             data: {
-                name: validateCategory.name,
-                parentId: validateCategory.parentId ? validateCategory.parentId : null,
+                ...validateDelivery
             }
         })
 
-        return res.status(200).json({ sccess: true, status: 200, data: { ...category } });
+        return res.status(200).json({ sccess: true, status: 200, data: { ...delivery } });
     } catch (err) {
-        throw new NotFoundException("Category with given Id doesn't exist")
+        throw new NotFoundException("Delivery with given Id doesn't exist")
     }
 
 }
@@ -65,12 +71,12 @@ export const getAllDelivery = async (req: Request, res: Response, next: NextFunc
 
 export const getDeliveryById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        let category = await prisma.category.findFirstOrThrow({
+        let delivery = await prisma.delivery.findFirstOrThrow({
             where: { id: req.params.id },
         });
-        return res.json({ success: true, status: 200, data: { ...category } })
+        return res.json({ success: true, status: 200, data: { ...delivery } })
     } catch (err) {
-        throw new NotFoundException("Category with given Id doesn't exist")
+        throw new NotFoundException("Delivery with given Id doesn't exist")
     }
 }
 
