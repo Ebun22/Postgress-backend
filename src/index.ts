@@ -4,6 +4,7 @@ import rootRouter from './routes';
 import { PORT } from './secrets.ts';
 import { errorMiddleware } from './middlewares/errors.ts';
 import dotenv from 'dotenv';
+import cors from 'cors'
 
 dotenv.config({path: '.env'});
 
@@ -29,6 +30,8 @@ export const prisma = new PrismaClient().$extends({
 });
 
 const app: Express = express()
+
+app.use(cors())
 
 app.disable('x-powered-by')
 app.use(express.json());
