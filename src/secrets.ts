@@ -2,16 +2,10 @@ import dotenv from 'dotenv';
 
 dotenv.config({path: '.env'});
 
-if(process.env.NODE_ENV === "development"){
-    process.env.DATABASE_URL = process.env.DATABASE_URL_DEV
-}else if(process.env.NODE_ENV === "production"){
-    process.env.DATABASE_URL = process.env.DATABASE_URL_PROD
-}
-
-console.log("THIS IS DB URL: ", process.env.DATABASE_URL)
 
 export const PORT = process.env.PORT;
 export const JWT_SECRET = process.env.JWT_SECRET!;
+export const STRIPE_API_KEY = process.env.STRIPE_API_KEY!;
 export const CLOUD_NAME = process.env.CLOUD_NAME;
 export const API_KEY = process.env.API_KEY;
 export const API_SECRET = process.env.API_SECRET;

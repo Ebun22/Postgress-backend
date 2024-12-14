@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express"
 import { prisma } from ".."
 import { BadRequestsException } from "../exceptions/bad-request"
+import Stripe from 'stripe';
 import { Cart, Prisma } from "@prisma/client"
 import { NotFoundException } from "../exceptions/not-found"
+import { STRIPE_API_KEY } from "../secrets";
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -72,10 +74,24 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 }
 
 export const createCheckout = async (req: Request, res: Response, next: NextFunction) => {
+    const stripe = new Stripe(STRIPE_API_KEY);
+
     const orderId = req.params.orderId
 
-    const order = await prisma.order.findFirst({where: {id: orderId}})
-    if(!order) throw new NotFoundException("This order doesn't exist");
+    const order = await prisma.order.findFirst({ where: { id: orderId } })
+    if (!order) throw new NotFoundException("This order doesn't exist");
+    console.log("This is the order: ", order);
+
+    // const session = await stripe.checkout.sessions.create({
+    //     success_url: 'https://example.com/success',
+    //     line_items: [
+    //         {
+    //             price: 'price_1MotwRLkdIwHu7ixYcPLm5uZ',
+    //             quantity: 2,
+    //         },
+    //     ],
+    //     mode: 'payment',
+    // });
 }
 
 export const listOrders = async (req: Request, res: Response, next: NextFunction) => {

@@ -24,49 +24,41 @@ export const addItemToCart = async (req: Request, res: Response, next: NextFunct
         )
 
         cart = await prisma.cart.findFirst({
-            include: {
-                cartItems: true
-            },
-            where: { userId: req.user.id }
+            where: { userId: req.user.id },
+            include: { cartItems: true }
         }) as Cart
-        console.log("This is cart: ", cart)
+
         if (!cart) {
-            const cart = await prisma.cart.create({
-                data: { userId: req.user.id },
+            const newCart = await prisma.cart.create({
+                data: {
+                    userId: req.user.id,
+                    cartItems: {
+                        create: validateCart.map((items: ClientCartItemsType) => ({
+                            productId: items.productId,
+                            quantity: items.quantity,
+                        }))
+                    }
+
+                },
                 include: {
                     cartItems: true
                 }
             })
-            if (cart) {
-                await Promise.all(
-                    validateCart.map((items: ClientCartItemsType) => {
-                        prisma.cartItem.create({
-                            data: {
-                                productId: items.productId,
-                                quantity: items.quantity,
-                                cartId: cart.id
-                            }
-                        })
-                    })
-                )
-                res.status(201).json({ success: true, statusCode: 201, data: { ...cart } })
-            }
-        } else {
-            await Promise.all(
-                validateCart.map((items: ClientCartItemsType) =>
-                    prisma.cartItem.upsert({
-                        where: { productId: items.productId },
-                        update: { quantity: { increment: items.quantity } },
-                        create: {
-                            productId: items.productId,
-                            quantity: items.quantity,
-                            cartId: cart.id
-                        }
-                    })
-                )
-            )
-            res.status(201).json({ success: true, statusCode: 201, data: { ...cart } })
         }
+        await Promise.all(
+            validateCart.map((items: ClientCartItemsType) =>
+                prisma.cartItem.upsert({
+                    where: { productId: items.productId },
+                    update: { quantity: { increment: items.quantity } },
+                    create: {
+                        productId: items.productId,
+                        quantity: items.quantity,
+                        cartId: cart.id
+                    }
+                })
+            )
+        )
+        res.status(201).json({ success: true, statusCode: 201, data: { ...cart } })
     } catch (err) {
         console.log("this si err in cart: ", err)
         throw new NotFoundException("Product Id doesn't exist")
@@ -76,7 +68,7 @@ export const addItemToCart = async (req: Request, res: Response, next: NextFunct
 export const getCart = async (req: Request, res: Response, next: NextFunction) => {
     //make sure cart belongs to user
     try {
-        const cart = await prisma.cart.findMany({
+        const cart = await prisma.cart.findFirstOrThrow({
             where: { userId: req.body.id },
             include: {
                 cartItems: true
@@ -125,6 +117,24 @@ export const deleteItemFromCart = async (req: Request, res: Response, next: Next
         //ensure cartItem Id exists
         try {
             await prisma.cart.delete({ where: { id: req.params.id } })
+            res.status(204).json({})
+        } catch (err) {
+            throw new NotFoundException("Cart Item not found in Cart")
+        }
+    }
+}
+
+export const clearCart = async (req: Request, res: Response, next: NextFunction) => {
+    //check if user is deleting his own cart item, 
+    let cart: Cart;
+    try {
+        cart = await prisma.cart.findFirstOrThrow({ where: { userId: req.user.id } })
+    } catch (err) {
+        throw new BadRequestsException("Cart doesn't belong to user")
+    }
+    if (cart) {
+        try {
+            await prisma.cartItem.deleteMany({ where: { cartId: cart.id } })
             res.status(204).json({})
         } catch (err) {
             throw new NotFoundException("Cart Item not found in Cart")
