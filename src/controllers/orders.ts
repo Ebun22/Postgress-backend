@@ -71,6 +71,13 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 
 }
 
+export const createChaeckout = async (req: Request, res: Response, next: NextFunction) => {
+    const orderId = req.params.orderId
+
+    const order = await prisma.order.findFirst({where: {id: orderId}})
+    if(!order) throw new NotFoundException("This order doesn't exist");
+}
+
 export const listOrders = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userOrder = await prisma.order.findFirstOrThrow({ where: { userId: req.user.id } })
