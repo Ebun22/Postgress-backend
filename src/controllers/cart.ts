@@ -38,12 +38,9 @@ export const addItemToCart = async (req: Request, res: Response, next: NextFunct
                             quantity: items.quantity,
                         }))
                     }
-
-                },
-                include: {
-                    cartItems: true
                 }
             })
+            res.status(201).json({ success: true, statusCode: 201, data: { ...newCart } })
         }
         await Promise.all(
             validateCart.map((items: ClientCartItemsType) =>
@@ -134,8 +131,9 @@ export const clearCart = async (req: Request, res: Response, next: NextFunction)
     }
     if (cart) {
         try {
-            await prisma.cartItem.deleteMany({ where: { cartId: cart.id } })
-            res.status(204).json({})
+            const clearedCart = await prisma.cartItem.deleteMany({ where: { cartId: cart.id } })
+            console.log("This is clearedCart: ", clearedCart)
+            res.status(200).json({ success: true, statusCode: 200, message: "Cart Cleared" })
         } catch (err) {
             throw new NotFoundException("Cart Item not found in Cart")
         }
