@@ -8,7 +8,7 @@ const orderRoutes: Router = Router()
 
 orderRoutes.get("/", [authMiddleWare], errorHandler(listOrders))
 orderRoutes.post("/", [authMiddleWare], errorHandler(createOrder))
-orderRoutes.post("/:orderId/checkout", [authMiddleWare], errorHandler(createCheckout))
+// orderRoutes.post("/:orderId/checkout", [authMiddleWare], errorHandler(createCheckout))
 orderRoutes.get("/:id", [authMiddleWare], errorHandler(getOrderById))
 orderRoutes.put("/:id", [authMiddleWare], errorHandler(cancelOrders))
 

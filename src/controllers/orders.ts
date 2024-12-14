@@ -71,7 +71,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 
 }
 
-export const createChaeckout = async (req: Request, res: Response, next: NextFunction) => {
+export const createCheckout = async (req: Request, res: Response, next: NextFunction) => {
     const orderId = req.params.orderId
 
     const order = await prisma.order.findFirst({where: {id: orderId}})
