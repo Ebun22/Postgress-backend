@@ -131,22 +131,20 @@ export const listOrders = async (req: Request, res: Response, next: NextFunction
 }
 
 export const cancelOrders = async (req: Request, res: Response, next: NextFunction) => {
+    console.log("User ID:", req.user.id);
+console.log("Order ID:", req.params.id);
     try {
         await prisma.$transaction(async (tx) => {
             try {
                 //to make sure user is canceling his own order
                 const userOrder = await tx.order.findFirstOrThrow({ where: { userId: req.user.id } })
-                console.log("This si userOrder: ", userOrder)
                 if (userOrder) {
                     const order = await tx.order.update({
                         where: { id: req.params.id },
-                        data: {
-                            status: "CANCELLED"
-                        }, include: {
-                            products: true,
-                            events: true
-                        }
+                        data: { status: "CANCELLED" }, 
+                        include: { products: true, events: true }
                     })
+                    console.log("This is edited order: ", order)
                     await tx.orderEvent.create({
                         data: {
                             orderId: req.params.id,
