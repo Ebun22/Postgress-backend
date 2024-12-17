@@ -55,7 +55,6 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
                     }
                 }
             })
-            console.log("Thsi is the sent currency: ", req.body.currency, "This is the order created: ", order)
 
             const orderEvents = await tx.orderEvent.create({
                 data: {
@@ -137,6 +136,7 @@ export const cancelOrders = async (req: Request, res: Response, next: NextFuncti
             try {
                 //to make sure user is canceling his own order
                 const userOrder = await tx.order.findFirstOrThrow({ where: { userId: req.user.id } })
+                console.log("This si userOrder: ", userOrder)
                 if (userOrder) {
                     const order = await tx.order.update({
                         where: { id: req.params.id },
