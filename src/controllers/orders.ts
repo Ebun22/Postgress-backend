@@ -5,6 +5,7 @@ import Stripe from 'stripe';
 import { Cart, Prisma } from "@prisma/client"
 import { NotFoundException } from "../exceptions/not-found"
 import { STRIPE_API_KEY } from "../secrets";
+import { Decimal } from "@prisma/client/runtime/library";
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user.defaultShippingAddressId) return res.json({ success: true, message: "No address is set as default" })
@@ -38,12 +39,11 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
             })
 
             //figure out what address is being sent if default fails
-            console.log("Thsi is teh address: ", address, "Thsi si teh default addy: ", req.user.defaultShippingAddress)
             const order = await tx.order.create({
                 data: {
-                    netAmount: totalPrice,
+                    netAmount: new Decimal(totalPrice),
                     address: address.formattedAddress,
-                    userId: req.user.id,
+                    userId: req.user.id as string,
                     currency: req.body.currency,
                     products: {
                         create: cart.cartItems.map((items: { product: { id: string }; quantity: number }) => {
@@ -55,6 +55,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
                     }
                 }
             })
+            console.log("Thsi is the sent currency: ", req.body.currency, "This is the order created: ", order)
 
             const orderEvents = await tx.orderEvent.create({
                 data: {

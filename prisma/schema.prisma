@@ -150,7 +150,7 @@ model Category {
   parentId  String?
   Product   Product[]
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  updatedAt DateTime?  @updatedAt
 }
 
 model Rate {
@@ -171,7 +171,7 @@ model Image {
   product   Product? @relation(fields: [productId], references: [id])
   Recipe    Recipe?  @relation(fields: [recipeId], references: [id])
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 }
 
 model Review {
@@ -188,8 +188,7 @@ model Order {
   id        String           @id @default(cuid())
   netAmount Decimal
   address   String
-  currency  String
-  order     String
+  currency  String?
   userId    String
   status    OrderEventStatus @default(PENDING)
   user      User             @relation(fields: [userId], references: [id])
@@ -228,13 +227,16 @@ model Currency {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  exchangeRate ExchangeRate[]
+
+  toExchangeRate ExchangeRate[] @relation("toCurrency")
+
+  fromExchangeRate ExchangeRate[] @relation("fromCurrency")
 }
 
 model ExchangeRate {
   id             String    @id @default(cuid())
   fromCurrencyId String?
   toCurrencyId   String?
-  fromCurrency   Currency  @relation("fromCurrency", fields: [fromCurrencyId], references: [id])
-  toCurrency     Currency  @relation("toCurrency", fields: [toCurrencyId], references: [id])
+  fromCurrency   Currency?  @relation("fromCurrency", fields: [fromCurrencyId], references: [id])
+  toCurrency     Currency?  @relation("toCurrency", fields: [toCurrencyId], references: [id])
 }
