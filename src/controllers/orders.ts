@@ -88,7 +88,7 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
                     quantity: true,
                     product: {
                         select: {
-                            name: true, 
+                            name: true,
                             price: true
                         },
                     },
@@ -104,7 +104,7 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
             price_data: {
                 currency: "usd",
                 product_data: {
-                    name: product.name 
+                    name: product.name
                 },
                 unit_amount: product.price * 100
             },
@@ -132,26 +132,31 @@ export const listOrders = async (req: Request, res: Response, next: NextFunction
 
 export const cancelOrders = async (req: Request, res: Response, next: NextFunction) => {
     console.log("User ID:", req.user.id);
-console.log("Order ID:", req.params.id);
+    console.log("Order ID:", req.params.id);
     try {
         await prisma.$transaction(async (tx) => {
             try {
                 //to make sure user is canceling his own order
                 const userOrder = await tx.order.findFirstOrThrow({ where: { userId: req.user.id } })
                 if (userOrder) {
-                    const order = await tx.order.update({
-                        where: { id: req.params.id },
-                        data: { status: "CANCELLED" }, 
-                        include: { products: true, events: true }
-                    })
-                    console.log("This is edited order: ", order)
-                    await tx.orderEvent.create({
-                        data: {
-                            orderId: req.params.id,
-                            status: 'CANCELLED'
-                        }
-                    })
-                    return res.json({ success: true, statusCode: 200, data: { ...order } });
+                    try {
+                        const order = await tx.order.update({
+                            where: { id: req.params.id },
+                            data: { status: "CANCELLED" },
+                            include: { products: true, events: true }
+                        })
+                        console.log("This is edited order: ", order)
+                        await tx.orderEvent.create({
+                            data: {
+                                orderId: req.params.id,
+                                status: 'CANCELLED'
+                            }
+                        })
+
+                        return res.json({ success: true, statusCode: 200, data: { ...order } });
+                    } catch (err) {
+                        throw new NotFoundException("Order doesn't exist")
+                    }
                 }
             } catch (err) {
                 throw new BadRequestsException("Order doesn't belong to logged in user")
