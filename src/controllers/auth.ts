@@ -11,7 +11,7 @@ import { InternalException } from "../exceptions/internal-exception";
 import { NotFoundException } from "../exceptions/not-found";
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
-    const { email, name, password } = req.body;
+    const { email, name, number, password } = req.body;
     
     //handling Zod error in my errorHandling function
     SignUpSchema.parse(req.body);
@@ -25,6 +25,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
         data: {
             name,
             email,
+            number, 
             password: bcrypt.hashSync(password, 10)
         }
     })

@@ -198,14 +198,13 @@ export const getAllRecipes = async (req: Request, res: Response, next: NextFunct
         cursorRecipe = await prisma.recipe.findUnique({
             where: { id: cursor as string }
         })
-
         if (!cursorRecipe) {
             throw new NotFoundException("Recipe id not found")
         }
     }
     const allRecipe = await prisma.recipe.findMany({
         include: {
-            // product: true,
+  
             image: true
         },
         take: +finalLimit!,

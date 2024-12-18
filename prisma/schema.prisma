@@ -31,6 +31,7 @@ model User {
   id                       String            @id @default(cuid())
   email                    String            @unique
   name                     String?
+  number                   String?
   role                     Role              @default(USER)
   defaultShippingAddressId String?           @unique
   password                 String
@@ -39,6 +40,7 @@ model User {
   cart                     Cart[]
   address                  ShippingAddress[]
   Order                    Order[]
+  Wishlist                 Wishlist[]
 
   @@map("user") //maps the model to be assesible under the name users
 }
@@ -82,8 +84,19 @@ model Product {
   orders   OrderProduct[]
   category Category[]
   recipe   RecipeProducts[]
+  Wishlist Wishlist[]
 
   @@map("products")
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model CartItem {
@@ -135,7 +148,6 @@ model Delivery {
 
 model RecipeProducts {
   id         String   @id @default(cuid())
-  // quantity   Int
   productId  String
   recipeId   String
   ingredient Product  @relation(fields: [productId], references: [id])
@@ -150,7 +162,7 @@ model Category {
   parentId  String?
   Product   Product[]
   createdAt DateTime  @default(now())
-  updatedAt DateTime?  @updatedAt
+  updatedAt DateTime? @updatedAt
 }
 
 model Rate {
@@ -164,13 +176,13 @@ model Rate {
 }
 
 model Image {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   productId String?
   recipeId  String?
   url       String
-  product   Product? @relation(fields: [productId], references: [id])
-  Recipe    Recipe?  @relation(fields: [recipeId], references: [id])
-  createdAt DateTime @default(now())
+  product   Product?  @relation(fields: [productId], references: [id])
+  Recipe    Recipe?   @relation(fields: [recipeId], references: [id])
+  createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 }
 
@@ -220,13 +232,12 @@ model OrderEvent {
 }
 
 model Currency {
-  id           String         @id @default(cuid())
-  name         String
-  code         String
-  symbol       String
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-
+  id        String   @id @default(cuid())
+  name      String
+  code      String
+  symbol    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   toExchangeRate ExchangeRate[] @relation("toCurrency")
 
@@ -237,6 +248,6 @@ model ExchangeRate {
   id             String    @id @default(cuid())
   fromCurrencyId String?
   toCurrencyId   String?
-  fromCurrency   Currency?  @relation("fromCurrency", fields: [fromCurrencyId], references: [id])
-  toCurrency     Currency?  @relation("toCurrency", fields: [toCurrencyId], references: [id])
+  fromCurrency   Currency? @relation("fromCurrency", fields: [fromCurrencyId], references: [id])
+  toCurrency     Currency? @relation("toCurrency", fields: [toCurrencyId], references: [id])
 }

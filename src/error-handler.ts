@@ -18,15 +18,20 @@ export const errorHandler = (method: { (req: Request, res: Response, next: NextF
                 if (err instanceof ZodError) {
                     exception = new UnprocessableEntity("Unprocessable entity", err?.issues)
                 } else if (err instanceof Prisma.PrismaClientValidationError) {
-                    console.log("This is error in zod: ", err )
+                    console.log("This is error in zod: ", err)
                     exception = new UnprocessableEntity("Unprocessable entity: enter valid paramters", err)
                 } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
                     console.log("This is err in exception: ", err)
-                    exception =  new NotFoundException("Invalid : Id doesn't exist")
-                } else {
-                    console.log("tHis is teh true error: ", err)
-                    exception = new InternalException("Something went wrong!", err)
+                    exception = new NotFoundException("Invalid : Id doesn't exist")
+                } else if (typeof err === "object" && err !== null && "type" in err) {
+                    const stripeError = err as { type: string; raw: any; param: string };
+                    if (stripeError.type === "StripeInvalidRequestError") {
+
+                        exception = new InternalException("StripeInvalidRequestError", {message: err})
+                    }
+
                 }
+                exception = new InternalException("Something went wrong!", err)
             }
             next(exception)
         }

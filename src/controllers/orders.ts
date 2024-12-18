@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express"
 import { prisma } from ".."
 import { BadRequestsException } from "../exceptions/bad-request"
 import Stripe from 'stripe';
-import { Cart, Prisma } from "@prisma/client"
+import { Cart, Order, OrderEventStatus, Prisma } from "@prisma/client"
 import { NotFoundException } from "../exceptions/not-found"
 import { STRIPE_API_KEY } from "../secrets";
 import { Decimal } from "@prisma/client/runtime/library";
@@ -89,7 +89,7 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
                     product: {
                         select: {
                             name: true,
-                            price: true
+                            price: true,
                         },
                     },
                 }
@@ -99,23 +99,30 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
     if (!order) throw new NotFoundException("This order doesn't exist");
     console.log("This is the order: ", order.products[0].product);
 
-    const session = await stripe.checkout.sessions.create({
-        line_items: order.products.map(({ quantity, product }) => ({
-            price_data: {
-                currency: "usd",
-                product_data: {
-                    name: product.name
+    try {
+        const session = await stripe.checkout.sessions.create({
+            line_items: order.products.map(({ quantity, product }) => ({
+                price_data: {
+                    currency: order.currency !== null ? order.currency as string : "usd",
+                    product_data: {
+                        name: product.name
+                    },
+                    unit_amount: product.price * 100
                 },
-                unit_amount: product.price * 100
-            },
-            quantity
-        })),
-        mode: 'payment',
-        success_url: `${req.protocol}://${req.get('host')}${req.path}api/order/success`,
-        cancel_url: `${req.protocol}://${req.get('host')}${req.path}api/order/cancel`,
-    });
+                quantity
+            })),
+            mode: 'payment',
+            success_url: `${req.protocol}://${req.get('host')}${req.path}api/order/success`,
+            cancel_url: `${req.protocol}://${req.get('host')}${req.path}api/order/cancel`,
+        });
 
-    console.log("This is the session: ", session)
+        console.log("This is the session: ", session)
+        return res.json({ success: true, status: 200, data: { id: session.id, url: session.url } })
+    } catch (err) {
+        console.log("This is the err: ", err)
+        // return res.json({ success: false, status: {err.statusCode}, message: {err.raw.message} })
+    }
+
 }
 
 export const listOrders = async (req: Request, res: Response, next: NextFunction) => {
@@ -130,33 +137,39 @@ export const listOrders = async (req: Request, res: Response, next: NextFunction
     }
 }
 
-export const cancelOrders = async (req: Request, res: Response, next: NextFunction) => {
-    console.log("User ID:", req.user.id);
-    console.log("Order ID:", req.params.id);
+export const EditOrderStatus = async (req: Request, res: Response, next: NextFunction) => {
+    let order: Order;
+
+    const validateStatus = Object.values(OrderEventStatus)
+    if (!validateStatus.includes(req.query.status as OrderEventStatus)) throw new BadRequestsException("Order status type doesn't exist");
+
+    try {
+        await prisma.order.findFirstOrThrow({ where: { id: req.params.id } })
+    } catch (err) {
+        throw new NotFoundException("Order doesn't exist")
+    }
+
     try {
         await prisma.$transaction(async (tx) => {
             try {
                 //to make sure user is canceling his own order
                 const userOrder = await tx.order.findFirstOrThrow({ where: { userId: req.user.id } })
                 if (userOrder) {
-                    try {
-                        const order = await tx.order.update({
-                            where: { id: req.params.id },
-                            data: { status: "CANCELLED" },
-                            include: { products: true, events: true }
-                        })
-                        console.log("This is edited order: ", order)
-                        await tx.orderEvent.create({
-                            data: {
-                                orderId: req.params.id,
-                                status: 'CANCELLED'
-                            }
-                        })
 
-                        return res.json({ success: true, statusCode: 200, data: { ...order } });
-                    } catch (err) {
-                        throw new NotFoundException("Order doesn't exist")
-                    }
+                    order = await tx.order.update({
+                        where: { id: req.params.id },
+                        data: { status: req.query.status as OrderEventStatus },
+                        include: { products: true, events: true }
+                    })
+
+                    await tx.orderEvent.create({
+                        data: {
+                            orderId: req.params.id,
+                            status: req.query.status as OrderEventStatus
+                        }
+                    })
+
+                    return res.json({ success: true, statusCode: 200, data: { ...order } });
                 }
             } catch (err) {
                 throw new BadRequestsException("Order doesn't belong to logged in user")
@@ -189,5 +202,13 @@ export const getOrderById = async (req: Request, res: Response, next: NextFuncti
         }
     } catch (err) {
         throw new BadRequestsException("Order doesn't belong to logged in user")
+    }
+}
+
+export const deleteOrder = async (req: Request, res: Response, next: NextFunction) => {
+    const deletedOrder = await prisma.order.delete({ where: { id: req.params.id } })
+    if (deletedOrder) {
+        res.status(204).json()
+        return;
     }
 }
