@@ -66,7 +66,7 @@ export const deleteShippingAddress = async (req: Request, res: Response, next: N
 export const getUser = async (req: Request, res: Response, next: NextFunction) => {
     const user = await prisma.user.findUnique({
         where: { id: req.user.id },
-        include: { address: true }
+        include: { address: true}
     })
 
     res.json({ success: true, status: 200, data: { ...user } })
@@ -75,6 +75,8 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
 
 export const editUser = async (req: Request, res: Response, next: NextFunction) => {
     const validateUser = UpdateUserSchema.parse(req.body);
+    console.log("This is shipping Id sent: ", validateUser.defaultShippingAddressId)
+    console.log("This is the user id: ", req.user.id)
     let user: User
     if (validateUser.defaultShippingAddressId) {
         user = await prisma.user.update({
