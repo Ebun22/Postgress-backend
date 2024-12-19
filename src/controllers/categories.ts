@@ -75,7 +75,12 @@ export const getCategoriesById = async (req: Request, res: Response, next: NextF
         let category = await prisma.category.findFirstOrThrow({
             where: { id: req.params.id },
             include: {
-                Product: true
+                Product: {
+                    include: {
+                        category: true,
+                        images: true
+                    }
+                }
             }
         });
         return res.json({ success: true, status: 200, data: { ...category } })
