@@ -9,7 +9,7 @@ const categoryRoutes: Router = Router()
 
 categoryRoutes.post("/", [authMiddleWare, adminMiddleWare], errorHandler(createCategories))
 categoryRoutes.put("/:id", [authMiddleWare, adminMiddleWare], errorHandler(updateCategory))
-categoryRoutes.get("/", [authMiddleWare], errorHandler(getAllCategories))
+categoryRoutes.get("/", errorHandler(getAllCategories))
 categoryRoutes.get("/:id", [authMiddleWare], errorHandler(getCategoriesById))
 categoryRoutes.delete("/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteCategories))
 
