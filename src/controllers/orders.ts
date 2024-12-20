@@ -129,7 +129,24 @@ export const listOrders = async (req: Request, res: Response, next: NextFunction
     try {
         const userOrder = await prisma.order.findFirstOrThrow({ where: { userId: req.user.id } })
         if (userOrder) {
-            const orders = await prisma.order.findMany()
+            const orders = await prisma.order.findMany({
+                include: {
+                    products: {
+                        select: {
+                            product: {
+                                select: {
+                                    _count: true
+                                }
+                            }
+                        }
+                    },
+                    user: {
+                        select: {
+                            name: true
+                        }
+                    }
+                }
+            })
             return res.json({ success: true, status: 200, data: [...orders] })
         }
     } catch (err) {
