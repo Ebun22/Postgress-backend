@@ -203,7 +203,7 @@ export const getOrderById = async (req: Request, res: Response, next: NextFuncti
     const ids = req.user.id;
     const productsIds = ids.split(",");
     try {
-        const userOrder = await prisma.order.findFirstOrThrow({ where: { userId: req.user.id } })
+        const userOrder = await prisma.order.findMany({ where: { userId: {in: productsIds} } })
         if (userOrder) {
             try {
                 const order = await prisma.order.findMany({
