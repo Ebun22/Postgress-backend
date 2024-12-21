@@ -200,16 +200,17 @@ export const EditOrderStatus = async (req: Request, res: Response, next: NextFun
 }
 
 export const getOrderById = async (req: Request, res: Response, next: NextFunction) => {
-    
     try {
         const userOrder = await prisma.order.findFirstOrThrow({ where: { userId: req.user.id } })
+        console.log(userOrder)
         if (userOrder) {
             try {
                 const order = await prisma.order.findFirstOrThrow({
                     where: { id: req.params.id },
                     include: {
                         products: true,
-                        events: true
+                        events: true,
+                        user: true
                     }
                 })
                 return res.json({ success: true, statusCode: 200, data: { ...order } });
