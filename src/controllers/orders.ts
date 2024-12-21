@@ -208,7 +208,18 @@ export const getOrderById = async (req: Request, res: Response, next: NextFuncti
                 const order = await prisma.order.findFirstOrThrow({
                     where: { id: req.params.id },
                     include: {
-                        products: true,
+                        products: {
+                            select: {
+                                product: {
+                                    select: {
+                                        name: true,
+                                        images: true,
+                                        price: true,
+                                        stockQuantity: true
+                                    }
+                                }
+                            }
+                        },
                         events: true,
                         user: true
                     }
