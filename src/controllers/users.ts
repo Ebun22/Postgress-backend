@@ -68,7 +68,6 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
         where: { id: req.user.id },
         include: { address: true}
     })
-
     res.json({ success: true, status: 200, data: { ...user } })
     return;
 }
@@ -76,23 +75,21 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
 //USER ACCOUNT CONTROLLERS
 export const getAllUser = async (req: Request, res: Response, next: NextFunction) => {
     const user = await prisma.user.findMany({
-        // select: {
-        //     id: true,
-        //     email: true,
-        //     name: true,
-        //     number: true,
-        //     role: true,
-        //     defaultShippingAddressId: true,
-        //     createdAt: true,
-        //     updatedAt: true,
-        //   },
-        include: { 
-            Order: {
+        select: {
+            id: true,
+            email: true,
+            name: true,
+            number: true,
+            role: true,
+            defaultShippingAddressId: true,
+            createdAt: true,
+            updatedAt: true,
+            _count: {
                 select: {
-                    _count: true
-                }
-            }
-        }
+                  Order: true, 
+                },
+            },
+          },
     })
 
     res.json({ success: true, status: 200, data: { ...user } })
