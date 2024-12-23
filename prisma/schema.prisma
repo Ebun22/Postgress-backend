@@ -127,6 +127,7 @@ model Recipe {
   duration   String?
   difficulty String?
   ratings    Float?
+  isVisible  Boolean          @default(false)
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
   image      Image[]
