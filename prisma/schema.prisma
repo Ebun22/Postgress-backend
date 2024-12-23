@@ -76,6 +76,7 @@ model Product {
   rating        Float? // Optional rating average
   reviews       Review[] // Relation to a Review model
   isFavourite   Boolean  @default(false)
+  isVisible     Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
