@@ -73,6 +73,24 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
     return;
 }
 
+//USER ACCOUNT CONTROLLERS
+export const getAllUser = async (req: Request, res: Response, next: NextFunction) => {
+    const user = await prisma.user.findMany({
+        include: { 
+            Order: {
+                select: {
+                    _count: true
+                }
+            }
+        }
+    })
+
+    res.json({ success: true, status: 200, data: { ...user } })
+    return;
+}
+
+
+
 export const editUser = async (req: Request, res: Response, next: NextFunction) => {
     const validateUser = UpdateUserSchema.parse(req.body);
     console.log("This is shipping Id sent: ", validateUser.defaultShippingAddressId)
