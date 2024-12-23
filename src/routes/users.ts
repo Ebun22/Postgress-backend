@@ -10,7 +10,7 @@ const usersRoutes: Router = Router()
 usersRoutes.put("/", [authMiddleWare], errorHandler(editUser))
 usersRoutes.get("/", [authMiddleWare], errorHandler(getUser))
 
-usersRoutes.get("/", [authMiddleWare], errorHandler(getAllUser))
+usersRoutes.get("/all/", [authMiddleWare], errorHandler(getAllUser))
 usersRoutes.get("/address", errorHandler(getShippingAddress))
 usersRoutes.get("/address/:id", errorHandler(getByIdShippingAddress))
 usersRoutes.post("/address", [authMiddleWare], errorHandler(createShippingAddress))

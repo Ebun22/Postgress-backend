@@ -76,16 +76,16 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
 //USER ACCOUNT CONTROLLERS
 export const getAllUser = async (req: Request, res: Response, next: NextFunction) => {
     const user = await prisma.user.findMany({
-        select: {
-            id: true,
-            email: true,
-            name: true,
-            number: true,
-            role: true,
-            defaultShippingAddressId: true,
-            createdAt: true,
-            updatedAt: true,
-          },
+        // select: {
+        //     id: true,
+        //     email: true,
+        //     name: true,
+        //     number: true,
+        //     role: true,
+        //     defaultShippingAddressId: true,
+        //     createdAt: true,
+        //     updatedAt: true,
+        //   },
         include: { 
             Order: {
                 select: {
