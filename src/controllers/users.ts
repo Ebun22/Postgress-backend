@@ -92,7 +92,7 @@ export const getAllUser = async (req: Request, res: Response, next: NextFunction
           },
     })
 
-    res.json({ success: true, status: 200, data: { ...user } })
+    res.json({ success: true, status: 200, data: [ ...user ] })
     return;
 }
 
