@@ -2,15 +2,16 @@ import { Router } from "express";
 import { errorHandler } from "../error-handler";
 import { authMiddleWare } from "../middlewares/auth";
 import { adminMiddleWare } from "../middlewares/admin";
-import { createShippingAddress, deleteShippingAddress, editShippingAddress, editUser, getAllUser, getByIdShippingAddress, getShippingAddress, getUser} from "../controllers/users";
+import { createShippingAddress, deleteShippingAddress, editShippingAddress, editUser, getAllUser, getByIdShippingAddress, getShippingAddress, getUser, getUserById} from "../controllers/users";
 
 const usersRoutes: Router = Router()
 
 
 usersRoutes.put("/", [authMiddleWare], errorHandler(editUser))
 usersRoutes.get("/", [authMiddleWare], errorHandler(getUser))
+usersRoutes.get("/:id", [authMiddleWare, adminMiddleWare], errorHandler(getUserById))
 
-usersRoutes.get("/all/", [authMiddleWare], errorHandler(getAllUser))
+usersRoutes.get("/all/", [authMiddleWare, adminMiddleWare], errorHandler(getAllUser))
 usersRoutes.get("/address", errorHandler(getShippingAddress))
 usersRoutes.get("/address/:id", errorHandler(getByIdShippingAddress))
 usersRoutes.post("/address", [authMiddleWare], errorHandler(createShippingAddress))

@@ -72,7 +72,6 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
     return;
 }
 
-//USER ACCOUNT CONTROLLERS
 export const getAllUser = async (req: Request, res: Response, next: NextFunction) => {
     const user = await prisma.user.findMany({
         select: {
@@ -96,7 +95,34 @@ export const getAllUser = async (req: Request, res: Response, next: NextFunction
     return;
 }
 
+export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
+    const user = await prisma.user.findFirstOrThrow({
+        where: {id: req.params.id},
+        select: {
+            id: true,
+            email: true,
+            name: true,
+            number: true,
+            role: true,
+            defaultShippingAddressId: true,
+            createdAt: true,
+            updatedAt: true,
+            _count: {
+                select: {
+                  Order: true, 
+                },
+            },
+            Order: {
+                include: {
+                    products: true
+                }
+            },
+          },
+    })
 
+    res.json({ success: true, status: 200, data: {...user} })
+    return;
+}
 
 export const editUser = async (req: Request, res: Response, next: NextFunction) => {
     const validateUser = UpdateUserSchema.parse(req.body);

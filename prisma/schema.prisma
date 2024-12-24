@@ -127,7 +127,7 @@ model Recipe {
   duration   String?
   difficulty String?
   ratings    Float?
-    isVisible     Boolean  @default(false)
+  isVisible  Boolean          @default(false)
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
   image      Image[]
@@ -234,22 +234,26 @@ model OrderEvent {
 }
 
 model Currency {
-  id        String   @id @default(cuid())
-  name      String
-  code      String
-  symbol    String
+  id     String @id @default(cuid())
+  name   String
+  code   String
+  symbol String
+
+  toExchangeRate   ExchangeRate[] @relation("toCurrency")
+  fromExchangeRate ExchangeRate[] @relation("fromCurrency")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  toExchangeRate ExchangeRate[] @relation("toCurrency")
-
-  fromExchangeRate ExchangeRate[] @relation("fromCurrency")
 }
 
 model ExchangeRate {
   id             String    @id @default(cuid())
   fromCurrencyId String?
   toCurrencyId   String?
+  rate           String
   fromCurrency   Currency? @relation("fromCurrency", fields: [fromCurrencyId], references: [id])
   toCurrency     Currency? @relation("toCurrency", fields: [toCurrencyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

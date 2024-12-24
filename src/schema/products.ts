@@ -19,20 +19,7 @@ export const ProductSchema = z.object({
     .refine((files) => {
       return Array.isArray(files) && files.length > 0;
     }, "Image is required")
-    // .refine((files) => {
-    //   files.every((file: File) => {
-    //     console.log("These are all the file sizes: ", file.size);
-    //     return file.size <= MAX_IMAGE_SIZE;
-    //   })
-    // }, "Image size is too large, image should be less than or equal to 1mb")
-  // reviews: z.array(
-  //   z.object({
-  //     id: z.string(),
-  //     content: z.string(),
-  //     rating: z.number().min(1).max(5),
-  //     createdAt: z.date(),
-  //   })
-  // ).optional(),
+
 })
 
 export const ProductUpdateSchma = ProductSchema.partial(); 
