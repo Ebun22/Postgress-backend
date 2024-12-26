@@ -71,6 +71,7 @@ export const getCart = async (req: Request, res: Response, next: NextFunction) =
                 cartItems: true
             }
         })
+        console.log("This is teh cart: ", cart)
         res.json({ success: true, statusCode: 201, data: { ...cart } })
     } catch (err) {
         throw new BadRequestsException("Cart doesn't belong to user")
