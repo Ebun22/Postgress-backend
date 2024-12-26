@@ -250,7 +250,7 @@ model ExchangeRate {
   id             String    @id @default(cuid())
   fromCurrencyId String
   toCurrencyId   String
-  rate           String
+  rate           Float
   fromCurrency   Currency? @relation("fromCurrency", fields: [fromCurrencyId], references: [id])
   toCurrency     Currency? @relation("toCurrency", fields: [toCurrencyId], references: [id])
 

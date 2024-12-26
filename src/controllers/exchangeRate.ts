@@ -10,29 +10,29 @@ import { ExchangeRate } from "@prisma/client";
 export const addCurrency = async (req: Request, res: Response, next: NextFunction) => {
     const data = [
         {
-            name:"Euro",
-            code:"Euro",
-            symbol:"lineicons:euro"
+            name: "Euro",
+            code: "Euro",
+            symbol: "lineicons:euro"
         },
         {
-            name:"United Arab Emirates Dirham ",
-            code:"AEU",
-            symbol:"pepicons-pencil:dollar"
+            name: "United Arab Emirates Dirham ",
+            code: "AEU",
+            symbol: "pepicons-pencil:dollar"
         },
         {
-            name:"Naira",
-            code:"NGN",
+            name: "Naira",
+            code: "NGN",
             symbol: "mdi:naira"
         },
         {
-            name:"Dollars",
-            code:"USD",
-            symbol:"pepicons-pencil:dollar"
-        }     
+            name: "Dollars",
+            code: "USD",
+            symbol: "pepicons-pencil:dollar"
+        }
 
     ]
     try {
-        const currency = await prisma.currency.createMany({data})
+        const currency = await prisma.currency.createMany({ data })
         return res.status(201).json({ status: 201, success: true, data: { ...currency } });
     } catch (err) {
         console.log(err)
@@ -44,7 +44,7 @@ export const addCurrency = async (req: Request, res: Response, next: NextFunctio
 //get currency 
 export const getAllCurrency = async (req: Request, res: Response, next: NextFunction) => {
     const currency = await prisma.currency.findMany()
-    res.json({ success: true, status: 200, data: [ ...currency ] })
+    res.json({ success: true, status: 200, data: [...currency] })
     return;
 }
 
@@ -72,6 +72,72 @@ export const createExchangeRate = async (req: Request, res: Response, next: Next
     }
 
 }
+
 //get rate
+export const getExchangeRate = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const rate = await prisma.exchangeRate.findMany({
+            select: {
+                id: true,
+                fromCurrency: {
+                    select: {
+                        name: true,
+                        code: true,
+                    }
+                },
+                toCurrency: {
+                    select: {
+                        name: true,
+                        code: true,  
+                    }
+                },
+                rate: true,
+            }
+        })
+
+        return res.status(201).json({ status: 201, success: true, data: [...rate] });
+    } catch (err) {
+        console.log(err)
+        throw new BadRequestsException("No Existing Rate")
+    }
+}
+
 //edit rate
+export const editExchangeRate = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const rate = await prisma.exchangeRate.upsert({
+            where: {id: req.params.id},
+            update: {
+                rate: req.body.rate
+            },
+            create: {
+                fromCurrencyId: req.body.fromCurrencyId,
+                toCurrencyId: req.body.toCurrencyId,
+                rate: req.body.rate
+            },
+            select: {
+                id: true,
+                fromCurrency: {
+                    select: {
+                        name: true,
+                        code: true,
+                    }
+                },
+                toCurrency: {
+                    select: {
+                        name: true,
+                        code: true,  
+                    }
+                },
+                rate: true,
+            }
+        })
+
+        return res.status(201).json({ status: 201, success: true, data: { ...rate } });
+    } catch (err) {
+        console.log(err)
+        throw new BadRequestsException("No Existing Rate")
+    }
+}
+
 //delete rate
