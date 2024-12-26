@@ -13,9 +13,9 @@ rateRoutes.post("/currency", [adminMiddleWare], errorHandler(addCurrency))
 rateRoutes.get("/currency", errorHandler(getAllCurrency))
 
 //Exchange Rate
-rateRoutes.post("/", errorHandler(createExchangeRate))
 rateRoutes.get("/", errorHandler(getExchangeRate))
 rateRoutes.put("/:id", errorHandler(editExchangeRate))
+rateRoutes.post("/", errorHandler(createExchangeRate))
 // rateRoutes.get("/", errorHandler(addCurrency))
 // rateistRoutes.get("/:id", errorHandler(getProductById))
 rateRoutes.post("/", [authMiddleWare], errorHandler(addToWishlist))

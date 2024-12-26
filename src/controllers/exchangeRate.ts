@@ -133,7 +133,7 @@ export const editExchangeRate = async (req: Request, res: Response, next: NextFu
             }
         })
 
-        return res.status(201).json({ status: 201, success: true, data: { ...rate } });
+        return res.status(200).json({ status: 200, success: true, data: { ...rate } });
     } catch (err) {
         console.log(err)
         throw new BadRequestsException("No Existing Rate")
