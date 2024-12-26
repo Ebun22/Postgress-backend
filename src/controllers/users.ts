@@ -8,8 +8,17 @@ import { UnprocessableEntity } from "../exceptions/validation";
 import { BadRequestsException } from "../exceptions/bad-request";
 
 export const createShippingAddress = async (req: Request, res: Response, next: NextFunction) => {
+    //if isDefault is true, get the id and set as default
+    const {isDefault, ...body} = req.body;
+    //if user has no previous address, current first address should be set as default 
     ShippingAddressSchema.parse(req.body);
     const address = await prisma.shippingAddress.create({ data: { ...req.body, userId: req.user.id } });
+    if(isDefault){
+        await prisma.user.update({
+            where: { id: req.user.id },
+            data: { defaultShippingAddressId: address.id }
+        })
+    }
     res.status(201).json({ success: true, statusCode: 201, data: { ...address } });
 }
 
@@ -128,8 +137,8 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
 
 export const editUser = async (req: Request, res: Response, next: NextFunction) => {
     const validateUser = UpdateUserSchema.parse(req.body);
-    console.log("This is shipping Id sent: ", validateUser.defaultShippingAddressId)
-    console.log("This is the user id: ", req.user.id)
+    // console.log("This is shipping Id sent: ", validateUser.defaultShippingAddressId)
+    // console.log("This is the user id: ", req.user.id)
     let user: User
     if (validateUser.defaultShippingAddressId) {
         user = await prisma.user.update({
