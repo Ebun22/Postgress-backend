@@ -66,7 +66,7 @@ export const getCart = async (req: Request, res: Response, next: NextFunction) =
     //make sure cart belongs to user
     try {
         const cart = await prisma.cart.findFirstOrThrow({
-            where: { userId: req.body.id },
+            where: { userId: req.user.id },
             include: {
                 cartItems: true
             }
