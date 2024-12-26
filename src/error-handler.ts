@@ -31,6 +31,7 @@ export const errorHandler = (method: { (req: Request, res: Response, next: NextF
                     }
 
                 }
+                console.log("This is err in exception at the end: ", err)
                 exception = new InternalException("Something went wrong!", err)
             }
             next(exception)

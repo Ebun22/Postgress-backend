@@ -10,24 +10,26 @@ dotenv.config({path: '.env'});
 
 export const DATABASE_URL = process.env.NODE_ENV === "production" ? process.env.DATABASE_URL_PROD :  process.env.DATABASE_URL_DEV;
 
-export const prisma = new PrismaClient().$extends({
-  result: {
-    shippingAddress: {
-      formattedAddress: {
-        needs: {
-          roomNo: true,
-          buildingName: true,
-          street: true,
-          area: true,
-          landmark: true,
-        },
-        compute: (addr) => {
-          return `${addr.roomNo} ${addr.buildingName}, ${addr.street}, ${addr.roomNo}, ${addr.landmark}`
-        }
-      }
-    }
-  }
-});
+export const prisma = new PrismaClient()
+
+// .$extends({
+//   result: {
+//     shippingAddress: {
+//       formattedAddress: {
+//         needs: {
+//           roomNo: true,
+//           buildingName: true,
+//           street: true,
+//           area: true,
+//           landmark: true,
+//         },
+//         compute: (addr) => {
+//           return `${addr.roomNo} ${addr.buildingName}, ${addr.street}, ${addr.roomNo}, ${addr.landmark}`
+//         }
+//       }
+//     }
+//   }
+// });
 
 const app: Express = express()
 
@@ -42,8 +44,8 @@ app.listen(PORT, () => console.log("App working!"))
 
 //prisma
 async function main() {
-  const allUsers = await prisma.user.findMany()
-  console.log(allUsers)
+  // const allUsers = await prisma.user.findMany()
+  // console.log(allUsers)
 }
 
 main()

@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { createProducts, deleteAllProductImage, deleteProduct, deleteProductImageById, getAllProducts, getProductById, manageCategoriesOnProduct, updateProducts } from "../controllers/products";
 import { errorHandler } from "../error-handler";
 import { authMiddleWare }  from "../middlewares/auth";
 import { adminMiddleWare } from "../middlewares/admin";

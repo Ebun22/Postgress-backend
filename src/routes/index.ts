@@ -8,6 +8,7 @@ import categoryRoutes from './categories';
 import recipeRoutes from './recipe';
 import deliveryRoutes from './delivery';
 import wishlistRoutes from './wishlist';
+import rateRoutes from './exchangeRate';
 
 const rootRouter: Router = Router();
 
@@ -20,5 +21,6 @@ rootRouter.use('/category', categoryRoutes)
 rootRouter.use('/recipe', recipeRoutes)
 rootRouter.use('/delivery', deliveryRoutes)
 rootRouter.use('/wishlist', wishlistRoutes)
+rootRouter.use('/rate', rateRoutes)
 
 export default rootRouter;

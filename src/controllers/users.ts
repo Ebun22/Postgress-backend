@@ -14,7 +14,9 @@ export const createShippingAddress = async (req: Request, res: Response, next: N
 }
 
 export const getShippingAddress = async (req: Request, res: Response, next: NextFunction) => {
-    const address = await prisma.shippingAddress.findMany();
+    // console.log("This is the user id: ", req.user.id)
+    const address = await prisma.shippingAddress.findMany({where: {userId: req.user.id}});
+    // if(address.userId !== req.user.id)
     res.status(200).json({ success: true, statusCode: 200, data: [...address] });
     return;
 }

@@ -59,10 +59,10 @@ export const createExchangeRate = async (req: Request, res: Response, next: Next
     const validateExchangeRate = ExchangeRateArraySchema.parse(req.body)
     try {
         const currency = await prisma.exchangeRate.createMany({
-            data: validateExchangeRate.map(({ fromCurrencyId, toCurrencyId, price }: any) => ({
-                fromCurrencyId: fromCurrencyId as string,
-                toCurrencyId: toCurrencyId,
-                price: price
+            data: validateExchangeRate.map(({ fromCurrencyId, toCurrencyId, rate }: any) => ({
+                fromCurrencyId,
+                toCurrencyId,
+                rate
             }))
         })
         return res.status(201).json({ status: 201, success: true, data: { ...currency } });

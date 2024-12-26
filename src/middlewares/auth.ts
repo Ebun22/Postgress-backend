@@ -5,8 +5,10 @@ import jwt from "jsonwebtoken";
 import { prisma } from "..";
 
 export const authMiddleWare = async (req: Request, res: Response, next: NextFunction) => {
+
     // 1, get the token from Headers
     const token = req.headers.authorization?.split(" ")[1]
+    // console.log("This is the token in the authMiddelware: ", token)
     //2, handle if token deosn't exist
     if (!token) {
         next(new UnauthorizedException("Unauthenticated: No validation token found"))
@@ -17,7 +19,8 @@ export const authMiddleWare = async (req: Request, res: Response, next: NextFunc
         //4, use payload to find user in db
         const user = await prisma.user.findFirst({ 
             where: { id: payload.userId }
-         });
+        });
+        // console.log("This is the user in the authMiddelware: ", user)
         //5, if no user then throw unauthorized
         if (!user) {
             next(new UnauthorizedException("Unauthenticated: User doesn't exist"))
