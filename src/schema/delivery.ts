@@ -9,7 +9,5 @@ export const DeliverySchema = z.object({
     price: z.number()
 })
 
-export const DeliveryArraySchema = z.array(DeliverySchema);
-
 export const UpdateDeliverySchema = DeliverySchema.partial().strict();
    

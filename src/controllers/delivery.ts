@@ -2,32 +2,29 @@ import { NextFunction, Request, Response } from "express";
 import { prisma } from "..";
 import { Category, Delivery, Product } from "@prisma/client";
 import { NotFoundException } from "../exceptions/not-found";
-import { DeliveryArraySchema, DeliverySchema, UpdateDeliverySchema } from "../schema/delivery";
+import { DeliverySchema, UpdateDeliverySchema } from "../schema/delivery";
 import { BadRequestsException } from "../exceptions/bad-request";
 
 export const createDelivery = async (req: Request, res: Response, next: NextFunction) => {
-    const validateDelivery = req.body.map(({ startDate, endDate, price, ...body }: any) => {
-        // const { startDate, endDate, price, ...body } = req.body;
+    console.log("This is the request body: ", req.body)
+  const { startDate, endDate, price, ...body } = req.body
+    
         const parsedStartDate = new Date(startDate);
         const parsedEndDate = new Date(endDate);
         const parsedPrice = parseFloat(price);
 
-        const delivery = DeliverySchema.parse({
+        const validateDelivery = DeliverySchema.parse({
             endDate: parsedEndDate,
             startDate: parsedStartDate,
             price: parsedPrice,
             ...body
         });
-        return delivery;
+
+    const delivery = await prisma.delivery.create({
+        data: {...validateDelivery}
     })
 
-    console.log("Thsi si the validated delivery: ", validateDelivery)
-    let delivery = await prisma.delivery.createMany({
-        data: validateDelivery.map((deliveryData: any) => ({ ...deliveryData }))
-    })
-    console.log("This is teh created Delivery: ", delivery)
-
-    return res.status(201).json({ sccess: true, status: 201, message: `${delivery.count} Deliveries successfully created` })
+    return res.status(201).json({ sccess: true, status: 201, data: {...delivery} })
 }
 
 export const updateDelivery = async (req: Request, res: Response, next: NextFunction) => {
