@@ -9,6 +9,7 @@ import recipeRoutes from './recipe';
 import deliveryRoutes from './delivery';
 import wishlistRoutes from './wishlist';
 import rateRoutes from './exchangeRate';
+import policyRoutes from './policy';
 
 const rootRouter: Router = Router();
 
@@ -22,5 +23,6 @@ rootRouter.use('/recipe', recipeRoutes)
 rootRouter.use('/delivery', deliveryRoutes)
 rootRouter.use('/wishlist', wishlistRoutes)
 rootRouter.use('/rate', rateRoutes)
+rootRouter.use('/policy', policyRoutes)
 
 export default rootRouter;

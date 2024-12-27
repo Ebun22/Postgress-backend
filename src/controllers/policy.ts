@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { prisma } from "..";
 import { Category, Delivery, Product } from "@prisma/client";
 import { NotFoundException } from "../exceptions/not-found";
-import { DeliveryArraySchema, DeliverySchema, UpdateDeliverySchema } from "../schema/delivery";
+import { DeliverySchema, UpdateDeliverySchema } from "../schema/delivery";
 import { BadRequestsException } from "../exceptions/bad-request";
 import { PolicySchema, UpdatePolicySchema } from "../schema/policy";
 

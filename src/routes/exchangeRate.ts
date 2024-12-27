@@ -9,7 +9,7 @@ import { addCurrency, createExchangeRate, editExchangeRate, getAllCurrency, getE
 
 const rateRoutes: Router = Router()
 
-rateRoutes.post("/currency", [adminMiddleWare], errorHandler(addCurrency))
+rateRoutes.post("/currency", errorHandler(addCurrency))
 rateRoutes.get("/currency", errorHandler(getAllCurrency))
 
 //Exchange Rate
