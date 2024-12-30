@@ -68,7 +68,7 @@ export const createExchangeRate = async (req: Request, res: Response, next: Next
         return res.status(201).json({ status: 201, success: true, data: { ...currency } });
     } catch (err) {
         console.log(err)
-        throw new BadRequestsException("Currency wasn't succesfully created")
+        throw new BadRequestsException("Currency wasn't succesfully created: Currency Id doesn't exist")
     }
 
 }

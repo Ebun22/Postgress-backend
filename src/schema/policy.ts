@@ -6,4 +6,13 @@ export const PolicySchema = z.object({
 })
 
 export const UpdatePolicySchema = PolicySchema.partial().strict();
-   
+
+
+export const FAQSchema = z.object({
+    question: z.string(),
+    answer: z.string()
+})
+
+export const FAQArraySchema = z.array(FAQSchema)
+
+export const UpdateFAQSchema = FAQSchema.partial().strict();
