@@ -11,7 +11,7 @@ import cloudinary from "../cloudinary";
 import { UploadApiResponse } from "cloudinary";
 
 export const createProducts = async (req: Request, res: Response, next: NextFunction) => {
-    const { price, stockQuantity, attributes, category, ...body } = req.body;
+    const { price, stockQuantity, category, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
 
     // Parse and transform inputs
@@ -27,7 +27,6 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
         price: newPrice,
         stockQuantity: newStockQuantity,
         category: parsedCategory,
-        attributes: parsedAttribute,
         images: files,
         ...body
     })
