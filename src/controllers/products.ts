@@ -18,7 +18,6 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
     const newPrice = Number(price);
     const newStockQuantity = Number(stockQuantity);
     const parsedCategory = JSON.parse(category)
-    const parsedAttribute = JSON.parse(attributes)
 
     // Validate uploaded files
     if (!files || files.length === 0) {

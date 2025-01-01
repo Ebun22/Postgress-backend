@@ -13,7 +13,6 @@ export const ProductSchema = z.object({
   brand: z.string().optional(),
   SKU: z.string().optional(),
   stockQuantity: z.number().int(),
-  attributes: z.any(),
   rating: z.number().optional(),
   images: z.any()
     .refine((files) => {
