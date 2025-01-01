@@ -9,4 +9,4 @@ export const STRIPE_API_KEY = process.env.STRIPE_API_KEY!;
 export const CLOUD_NAME = process.env.CLOUD_NAME;
 export const API_KEY = process.env.API_KEY;
 export const API_SECRET = process.env.API_SECRET;
-export const DATABASE_URL = process.env.NODE_ENV === "production" ? process.env.DATABASE_URL_PROD :  process.env.DATABASE_URL_DEV;
+// export const DATABASE_URL = process.env.NODE_ENV === "production" ? process.env.DATABASE_URL_PROD :  process.env.DATABASE_URL_DEV;
