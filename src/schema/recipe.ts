@@ -8,6 +8,7 @@ export const RecipeSchema = z.object({
     duration: z.string().optional(),
     difficulty: z.string().optional(),
     ratings: z.number().optional(),
+    isVisible: z.boolean().optional(),
     image: z.any()
         .refine((files) => {
             return Array.isArray(files) && files.length > 0;
