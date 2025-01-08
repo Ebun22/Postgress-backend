@@ -16,12 +16,13 @@ type RecipeWithImages = Recipe & {
 };
 
 export const createRecipe = async (req: Request, res: Response, next: NextFunction) => {
-    const { ratings, product, ...body } = req.body;
+    const { ratings, product, isVisible, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
 
-    const newRatings = Number(ratings);
-    const newProduct = JSON.parse(product);
-    const isVisible = body.isVisible ? JSON.parse(body.isVisible) : false;
+    const newRatings = ratings ? Number(ratings) : undefined;
+    const newProduct = product ? JSON.parse(product) : undefined;
+    const newIsVisible = isVisible ? JSON.parse(isVisible) : false;
+    console.log("This is visibility: ",isVisible)
 
     // Validate uploaded files
     if (!files || files.length === 0) {
@@ -31,12 +32,12 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
     const validateRecipe = RecipeSchema.parse({
         ratings: newRatings,
         image: files,
-        isVisible,
+        isVisible: newIsVisible,
         ...body
     });
 
+    console.log("THESE IS validateRecipe: ", validateRecipe)
     const { image, ...validatedRecipe } = validateRecipe;
-    console.log("THESE ARE IMAGES< validateRecipe: ", files, newProduct, validatedRecipe)
 
     //UPLOAD AND IMAGE
     let uploadResult: UploadApiResponse[];
