@@ -55,6 +55,7 @@ model ShippingAddress {
   deliveryInstructions String?
   receiverInformation  String?
   number               String
+  isDefault            Boolean  @default(false) 
   userId               String
   user                 User?    @relation(fields: [userId], references: [id])
   createdAt            DateTime @default(now())
