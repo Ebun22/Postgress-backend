@@ -21,6 +21,7 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
 
     const newRatings = Number(ratings);
     const newProduct = JSON.parse(product);
+    const isVisible = body.isVisible ? JSON.parse(body.isVisible) : false;
 
     // Validate uploaded files
     if (!files || files.length === 0) {
@@ -30,6 +31,7 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
     const validateRecipe = RecipeSchema.parse({
         ratings: newRatings,
         image: files,
+        isVisible,
         ...body
     });
 
