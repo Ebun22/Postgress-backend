@@ -187,7 +187,7 @@ export const deleteRecipe = async (req: Request, res: Response, next: NextFuncti
     try{
         await prisma.$transaction(async (tx) => {
             await tx.recipeProducts.deleteMany({ where: { recipeId: req.params.id } })
-            const deletedRecipe = await prisma.recipe.delete({ where: { id: req.params.id } })
+            const deletedRecipe = await tx.recipe.delete({ where: { id: req.params.id } })
             if (deletedRecipe) {
                 res.status(204).json()
                 return;
