@@ -182,10 +182,20 @@ export const updateRecipe = async (req: Request, res: Response, next: NextFuncti
 }
 
 export const deleteRecipe = async (req: Request, res: Response, next: NextFunction) => {
-    const deletedRecipe = await prisma.recipe.delete({ where: { id: req.params.id } })
-    if (deletedRecipe) {
-        res.status(204).json()
-        return;
+    //delete recipe with given id
+    //delete recipeProduct with given recipeId as well
+    try{
+        await prisma.$transaction(async (tx) => {
+            await tx.recipeProducts.deleteMany({ where: { recipeId: req.params.id } })
+            const deletedRecipe = await prisma.recipe.delete({ where: { id: req.params.id } })
+            if (deletedRecipe) {
+                res.status(204).json()
+                return;
+            }
+        })
+    }catch(err){
+        console.log(err);
+        throw new NotFoundException("Recipe with given Id not found")
     }
 }
 
