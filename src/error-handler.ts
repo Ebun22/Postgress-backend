@@ -5,13 +5,14 @@ import { ZodError } from "zod";
 import { Prisma } from "@prisma/client"
 import { UnprocessableEntity } from "./exceptions/validation";
 import { NotFoundException } from "./exceptions/not-found";
+import { BadRequestsException } from "./exceptions/bad-request";
 
 export const errorHandler = (method: { (req: Request, res: Response, next: NextFunction): Promise<Response<any> | void> }) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
             await method(req, res, next)
         } catch (err) {
-            let exception: HttpException
+            let exception: HttpException = new BadRequestsException("Unknown error")
             if (err instanceof HttpException) {
                 exception = err
             } else {
@@ -27,12 +28,13 @@ export const errorHandler = (method: { (req: Request, res: Response, next: NextF
                     const stripeError = err as { type: string; raw: any; param: string };
                     if (stripeError.type === "StripeInvalidRequestError") {
 
-                        exception = new InternalException("StripeInvalidRequestError", {message: err})
+                        exception = new InternalException("StripeInvalidRequestError", { message: err })
                     }
 
+                } else {
+                    console.log("This is err in exception at the end: ", err)
+                    exception = new InternalException("Something went wrong!", err)
                 }
-                console.log("This is err in exception at the end: ", err)
-                exception = new InternalException("Something went wrong!", err)
             }
             next(exception)
         }
