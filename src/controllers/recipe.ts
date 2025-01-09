@@ -24,9 +24,9 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
     const newIsVisible = isVisible ? JSON.parse(isVisible) : false;         
 
     // Validate uploaded files
-    // if (!files || files.length === 0) {
-    //     throw new UnprocessableEntity("At least one image is required", {});
-    // }
+    if (!files || files.length === 0) {
+        throw new UnprocessableEntity("At least one image is required", {});
+    }
 
     const validateRecipe = RecipeSchema.parse({
         ratings: newRatings,
