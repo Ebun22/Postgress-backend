@@ -21,13 +21,12 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
 
     const newRatings = ratings ? Number(ratings) : undefined;
     const newProduct = product ? JSON.parse(product) : undefined;
-    const newIsVisible = isVisible ? JSON.parse(isVisible) : false;
-    console.log("This is visibility: ",isVisible)
+    const newIsVisible = isVisible ? JSON.parse(isVisible) : false;         
 
     // Validate uploaded files
-    if (!files || files.length === 0) {
-        throw new UnprocessableEntity("At least one image is required", {});
-    }
+    // if (!files || files.length === 0) {
+    //     throw new UnprocessableEntity("At least one image is required", {});
+    // }
 
     const validateRecipe = RecipeSchema.parse({
         ratings: newRatings,
