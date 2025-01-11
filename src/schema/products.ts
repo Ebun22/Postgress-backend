@@ -17,7 +17,7 @@ export const ProductSchema = z.object({
   isVisible: z.boolean().default(false),
   images: z.any()
     .refine((files) => {
-      if(files === undefined) return true;
+      if(files.length === 0) return true;
       return Array.isArray(files) && files.length > 0;
     }, "Image is required")
 

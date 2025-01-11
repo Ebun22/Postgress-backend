@@ -10,7 +10,9 @@ export const RecipeSchema = z.object({
     ratings: z.number().optional(),
     isVisible: z.boolean().optional(),
     image: z.any()
-        .refine((files) => {
+    .optional()
+    .refine((files) => {
+      if(files.length == 0) return true;
             return Array.isArray(files) && files.length > 0;
         }, "Image is required")
         // .refine((files) => {

@@ -96,6 +96,7 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
 export const updateProducts = async (req: Request, res: Response, next: NextFunction) => {
     const { price, stockQuantity, attributes, category, isFavourite, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
+
     console.log("Edit product is running", files, req.body)
     let uploadResult: UploadApiResponse[];
     
