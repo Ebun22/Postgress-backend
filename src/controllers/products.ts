@@ -66,6 +66,9 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
                             parentId: cat.parentId,
                         }))
                     }
+                },
+                include: {
+                    category: true
                 }
             })
             if (product) {

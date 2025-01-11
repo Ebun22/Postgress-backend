@@ -17,9 +17,10 @@ export const ProductSchema = z.object({
   isVisible: z.boolean().default(false),
   images: z.any()
     .refine((files) => {
+      if(files === undefined) return true;
       return Array.isArray(files) && files.length > 0;
     }, "Image is required")
 
-})
+}).strict()
 
-export const ProductUpdateSchma = ProductSchema.partial(); 
+export const ProductUpdateSchma = ProductSchema.partial().strict(); 
