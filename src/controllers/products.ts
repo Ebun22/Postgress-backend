@@ -111,8 +111,6 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
         price: newPrice,
         stockQuantity: newStockQuantity,
         category: parsedCategory,
-        attributes: parsedAttribute,
-        isFavourite: parsedFavourite,
         images: files || undefined,
         ...body
     })
@@ -145,9 +143,8 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
                 data: {
                     ...validatedProduct,
                     category: {
-                        create: parsedCategory.map((cat: Category) => ({
-                            name: cat.name,
-                            parentId: cat.parentId,
+                        connect: parsedCategory.map((cat: Category) => ({
+                           id: cat.id
                         }))
                     }
                 }

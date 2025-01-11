@@ -21,6 +21,6 @@ export const ProductSchema = z.object({
       return Array.isArray(files) && files.length > 0;
     }, "Image is required")
 
-}).strict()
+})
 
-export const ProductUpdateSchma = ProductSchema.partial().strict(); 
+export const ProductUpdateSchma = ProductSchema.partial(); 
