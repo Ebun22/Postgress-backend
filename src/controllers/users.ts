@@ -155,3 +155,11 @@ export const editUser = async (req: Request, res: Response, next: NextFunction) 
     const { password, ...userWithoutPassword } = user
     res.json({ success: true, status: 200, data: { ...userWithoutPassword } })
 }
+
+//Totals on dashboard
+//total sales
+//total Products
+// const 
+//total orders
+//total Recipe
+//total Custumers
