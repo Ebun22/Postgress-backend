@@ -14,6 +14,7 @@ export const ProductSchema = z.object({
   SKU: z.string().optional(),
   stockQuantity: z.number().int(),
   rating: z.number().optional(),
+  isVisible: z.boolean().default(false),
   images: z.any()
     .refine((files) => {
       return Array.isArray(files) && files.length > 0;

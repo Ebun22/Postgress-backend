@@ -11,13 +11,14 @@ import cloudinary from "../cloudinary";
 import { UploadApiResponse } from "cloudinary";
 
 export const createProducts = async (req: Request, res: Response, next: NextFunction) => {
-    const { price, stockQuantity, category, ...body } = req.body;
+    const { price, stockQuantity, category, isVisible, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
 
     // Parse and transform inputs
     const newPrice = Number(price);
     const newStockQuantity = Number(stockQuantity);
     const parsedCategory = JSON.parse(category)
+    const newIsVisible = isVisible ? JSON.parse(isVisible) : false;   
 
     // Validate uploaded files
     if (!files || files.length === 0) {
@@ -28,6 +29,7 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
         stockQuantity: newStockQuantity,
         category: parsedCategory,
         images: files,
+        isVisible: newIsVisible,
         ...body
     })
     const {images, ...validatedProduct } = validateProduct 
