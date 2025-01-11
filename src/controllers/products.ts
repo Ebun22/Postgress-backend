@@ -21,6 +21,9 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
     const parsedCategory = JSON.parse(category)
     const newIsVisible = isVisible ? JSON.parse(isVisible) : false;   
 
+    const createCategories: {create?: any, connect?: any} = {} 
+    // const insertCategories: {connect?: any} = {} 
+    
     // Validate uploaded files
     if (!files || files.length === 0) {
         throw new UnprocessableEntity("At least one image is required", {});
@@ -54,6 +57,19 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
         console.log("This error in image upload: ", err)
         throw new BadRequestsException("Error uploading image")
     }
+    
+
+    if(category.name){
+        createCategories.create = parsedCategory.map((cat: Category) => ({
+            name: cat.name,
+            parentId: cat.parentId,
+        }))
+    }
+    else{
+        createCategories.connect = parsedCategory.map((cat: Category) => ({
+            id: cat.id
+        }))
+    }
 
     let productImages: Image[];
     try {
@@ -62,12 +78,7 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
             const product = await tx.product.create({
                 data: {
                     ...validatedProduct,
-                    category: {
-                        create: parsedCategory.map((cat: Category) => ({
-                            name: cat.name,
-                            parentId: cat.parentId,
-                        }))
-                    }
+                    category: createCategories
                 },
                 include: {
                     category: true

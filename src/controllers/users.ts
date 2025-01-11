@@ -157,9 +157,39 @@ export const editUser = async (req: Request, res: Response, next: NextFunction) 
 }
 
 //Totals on dashboard
-//total sales
-//total Products
-// const 
-//total orders
-//total Recipe
-//total Custumers
+export const totalOnDashboard = async (req: Request, res: Response, next: NextFunction) => {
+       //total sales
+    
+   
+ 
+    
+    await prisma.$transaction(async (tx) => {
+        //total Products
+        const totalProducts = await tx.product.findMany({
+            include: {
+                _count: true
+            }
+        })
+         //total orders
+        const totalOrder = await tx.order.findMany({
+            include: {
+                _count: true
+            }
+        })
+           //total Recipe
+        const totalRecipe = await tx.recipe.findMany({
+            include: {
+                _count: true
+            }
+        })
+        //total Custumers
+        const totalCustomers = await tx.user.findMany({
+            include: {
+                _count: true
+            }
+        })
+
+        return res.status(200).json({success: true, status: 200, data: [{totalProducts}, {totalOrder}, {totalRecipe}, {totalCustomers}]})   
+    })
+ 
+}
