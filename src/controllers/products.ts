@@ -250,6 +250,7 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
         include: {
             category: {
                 select: {
+                    id: true,
                     name: true,
                     parentId: true
                 }

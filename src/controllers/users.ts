@@ -157,12 +157,8 @@ export const editUser = async (req: Request, res: Response, next: NextFunction) 
 }
 
 //Totals on dashboard
-export const totalOnDashboard = async (req: Request, res: Response, next: NextFunction) => {
+export const getTotalOnDashboard = async (req: Request, res: Response, next: NextFunction) => {
        //total sales
-    
-   
- 
-    
     await prisma.$transaction(async (tx) => {
         //total Products
         const totalProducts = await tx.product.findMany({
