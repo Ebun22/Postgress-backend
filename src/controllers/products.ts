@@ -107,7 +107,7 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
 }
 
 export const updateProducts = async (req: Request, res: Response, next: NextFunction) => {
-    const { price, stockQuantity, attributes, category, discount, isFavourite, ...body } = req.body;
+    const { price, stockQuantity, attributes, isVisible, category, discount, isFavourite, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
 
     console.log("Edit product is running", files, req.body)
@@ -118,14 +118,14 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
     const newStockQuantity = stockQuantity ? Number(stockQuantity) : undefined;
     const parsedCategory = category ? JSON.parse(category) : undefined;
     const newDiscount = discount ? Number(discount) : undefined;
-    const parsedAttribute = attributes ? JSON.parse(attributes) : undefined;
-    const parsedFavourite = isFavourite === "true" ? true : isFavourite === "false" ? false : undefined;
-    
+    const newIsVisible = isVisible ? JSON.parse(isVisible) : false;   
+
     const validateProduct = ProductUpdateSchma.parse({
         price: newPrice,
         stockQuantity: newStockQuantity,
         category: parsedCategory,
         discount:  newDiscount,
+        isVisible: newIsVisible,
         images: files || undefined,
         ...body
     })
