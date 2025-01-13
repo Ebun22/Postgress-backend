@@ -1,8 +1,8 @@
 import {z}  from "zod";
 
 export const CategorySchema = z.object({
-    name: z.string().optional(),
-    id: z.string().optional(),
+    name: z.string().nullable().optional(),
+    id: z.string().nullable().optional(),
     parentId: z.string().nullable().optional()
 })
 
