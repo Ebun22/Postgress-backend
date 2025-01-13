@@ -166,7 +166,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
         }))
     }
 
-    let product: Product | null;
+    let product: Product
     try {
         const updatedProduct = await prisma.$transaction(async (tx) => {
             try {
@@ -178,7 +178,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
                     }
                 })
             } catch (err) {
-
+                throw new BadRequestsException("Error adding image")
             }
             if (product) {
                 try {
