@@ -120,7 +120,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
     const newDiscount = discount ? Number(discount) : undefined;
     const newIsVisible = isVisible ? JSON.parse(isVisible) : false;
 
-    const createCategories: { create?: any, connect?: any } = {}
+    // const createCategories: { create?: any, connect?: any } = {}
 
     const validateProduct = ProductUpdateSchma.parse({
         price: newPrice,
@@ -154,39 +154,48 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
         }
     }
 
-    if (category.name) {
-        createCategories.create = parsedCategory.map((cat: Category) => ({
+    // const parsedCategory = req.body.categories || []; // Assuming categories are in the request body.
+
+    const connectCategories = parsedCategory
+        .filter((cat: Category) => cat.id)
+        .map((cat: Category) => ({ id: cat.id }));
+
+    const createCategories = parsedCategory
+        .filter((cat: Category) => cat.name)
+        .map((cat: Category) => ({
             name: cat.name,
-            parentId: cat.parentId,
-        }))
-    }
-    else {
-        createCategories.connect = parsedCategory.map((cat: Category) => ({
-            id: cat.id
-        }))
+            parentId: cat.parentId || null,
+        }));
+
+    const categoryData: any = {};
+
+    // Add `connect` only if there are valid `id`s
+    if (connectCategories.length > 0) {
+        categoryData.connect = connectCategories;
     }
 
-    let product: Product
+    // Add `create` only if there are valid `name`s
+    if (createCategories.length > 0) {
+        categoryData.create = createCategories;
+    }
+
     try {
-        const updatedProduct = await prisma.$transaction(async (tx) => {
-            try {
-                product = await tx.product.update({
-                    where: { id: req.params.id },
-                    data: {
-                        ...validatedProduct,
-                        ...(category.name || category.id) && { category: createCategories }
-                    }
-                })
-            } catch (err) {
-                throw new BadRequestsException("Error adding image")
-            }
-            if (product) {
+        const  updatedProduct = prisma.$transaction(async (tx) => {
+            const updatedProduct = await tx.product.update({
+                where: { id: req.params.id },
+                data: {
+                    ...validatedProduct,
+                    ...(Object.keys(categoryData).length > 0 && { category: categoryData }), // Add `category` only if there's valid data
+                },
+            });
+
+            if (updatedProduct) {
                 try {
                     const createdImage = await Promise.all(
                         uploadResult.map((img: UploadApiResponse) => {
                             return tx.image.create({
                                 data: {
-                                    productId: product?.id,
+                                    productId: updatedProduct?.id,
                                     url: img.secure_url
                                 }
                             })
@@ -199,7 +208,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
                 }
             }
 
-            return product
+            return  updatedProduct
         })
         return res.status(200).json({ status: 200, success: true, data: { ...updatedProduct } });
     } catch (err) {
