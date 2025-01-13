@@ -19,11 +19,11 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
     const newStockQuantity = Number(stockQuantity);
     const newDiscount = Number(discount);
     const parsedCategory = JSON.parse(category)
-    const newIsVisible = isVisible ? JSON.parse(isVisible) : false;
+    const newIsVisible = isVisible ? JSON.parse(isVisible) : false;   
 
-    const createCategories: { create?: any, connect?: any } = {}
+    const createCategories: {create?: any, connect?: any} = {} 
     // const insertCategories: {connect?: any} = {} 
-
+    
     // Validate uploaded files
     if (!files || files.length === 0) {
         throw new UnprocessableEntity("At least one image is required", {});
@@ -37,7 +37,7 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
         isVisible: newIsVisible,
         ...body
     })
-    const { images, ...validatedProduct } = validateProduct
+    const {images, ...validatedProduct } = validateProduct 
     //UPLOAD AND IMAGE
     let uploadResult: UploadApiResponse[];
     try {
@@ -57,15 +57,15 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
         console.log("This error in image upload: ", err)
         throw new BadRequestsException("Error uploading image")
     }
+    
 
-
-    if (category.name) {
+    if(category.name){
         createCategories.create = parsedCategory.map((cat: Category) => ({
             name: cat.name,
             parentId: cat.parentId,
         }))
     }
-    else {
+    else{
         createCategories.connect = parsedCategory.map((cat: Category) => ({
             id: cat.id
         }))
@@ -112,26 +112,26 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
 
     console.log("Edit product is running", files, req.body)
     let uploadResult: UploadApiResponse[];
-
+    
     // Parse and transform inputs
     const newPrice = price ? Number(price) : undefined;
     const newStockQuantity = stockQuantity ? Number(stockQuantity) : undefined;
     const parsedCategory = category ? JSON.parse(category) : undefined;
     const newDiscount = discount ? Number(discount) : undefined;
-    const newIsVisible = isVisible ? JSON.parse(isVisible) : false;
-
-    // const createCategories: { create?: any, connect?: any } = {}
+    const newIsVisible = isVisible ? JSON.parse(isVisible) : false;  
+    
+    const createCategories: {create?: any, connect?: any} = {} 
 
     const validateProduct = ProductUpdateSchma.parse({
         price: newPrice,
         stockQuantity: newStockQuantity,
         category: parsedCategory,
-        discount: newDiscount,
+        discount:  newDiscount,
         isVisible: newIsVisible,
         images: files || undefined,
         ...body
     })
-    const { images, ...validatedProduct } = validateProduct
+    const {images, ...validatedProduct } = validateProduct 
     //If images are sent, add them  to cloudinary
     if (files && Array.isArray(files) && files.length > 0) {
         try {
@@ -154,48 +154,35 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
         }
     }
 
-    // const parsedCategory = req.body.categories || []; // Assuming categories are in the request body.
-
-    const connectCategories = parsedCategory
-        .filter((cat: Category) => cat.id)
-        .map((cat: Category) => ({ id: cat.id }));
-
-    const createCategories = parsedCategory
-        .filter((cat: Category) => cat.name)
-        .map((cat: Category) => ({
+    if(category.name){
+        createCategories.create = parsedCategory.map((cat: Category) => ({
             name: cat.name,
-            parentId: cat.parentId || null,
-        }));
-
-    const categoryData: any = {};
-
-    // Add `connect` only if there are valid `id`s
-    if (connectCategories.length > 0) {
-        categoryData.connect = connectCategories;
+            parentId: cat.parentId,
+        }))
     }
-
-    // Add `create` only if there are valid `name`s
-    if (createCategories.length > 0) {
-        categoryData.create = createCategories;
+    else{
+        createCategories.connect = parsedCategory.map((cat: Category) => ({
+            id: cat.id
+        }))
     }
 
     try {
-        const  updatedProduct = prisma.$transaction(async (tx) => {
-            const updatedProduct = await tx.product.update({
+        const updatedProduct = await prisma.$transaction(async (tx) => {
+            const product = await tx.product.update({
                 where: { id: req.params.id },
                 data: {
                     ...validatedProduct,
-                    ...(Object.keys(categoryData).length > 0 && { category: categoryData }), // Add `category` only if there's valid data
-                },
-            });
+                    ...(category && {category: createCategories})
+                    }
 
-            if (updatedProduct) {
+            })
+            if (product) {
                 try {
                     const createdImage = await Promise.all(
                         uploadResult.map((img: UploadApiResponse) => {
                             return tx.image.create({
                                 data: {
-                                    productId: updatedProduct?.id,
+                                    productId: product.id,
                                     url: img.secure_url
                                 }
                             })
@@ -208,7 +195,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
                 }
             }
 
-            return  updatedProduct
+            return product
         })
         return res.status(200).json({ status: 200, success: true, data: { ...updatedProduct } });
     } catch (err) {
