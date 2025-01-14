@@ -8,9 +8,9 @@ import { upload } from "../middlewares/multer";
 
 const productsRoutes: Router = Router()
 
+productsRoutes.get("/total", [authMiddleWare, adminMiddleWare], errorHandler(totalOnProductScreen))
 productsRoutes.get("/", errorHandler(getAllProducts))
 productsRoutes.get("/:id", errorHandler(getProductById))
-productsRoutes.get("/:id", [authMiddleWare, adminMiddleWare], errorHandler(totalOnProductScreen))
 productsRoutes.post("/", upload.array('images', 3), [authMiddleWare, adminMiddleWare], errorHandler(createProducts))
 productsRoutes.put("/:id", upload.array('images', 3), [authMiddleWare, adminMiddleWare], errorHandler(updateProducts))
 productsRoutes.patch("/:productid/", [authMiddleWare, adminMiddleWare], errorHandler(manageCategoriesOnProduct))
