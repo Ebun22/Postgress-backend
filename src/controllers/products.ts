@@ -185,7 +185,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
                 throw new NotFoundException("Error updating Product: Product with given id not found")
             }
          
-            if (product && images.length > 0) {
+            if (product && images.length > 0 && images) {
                 try {
                     const createdImage = await Promise.all(
                         uploadResult.map((img: UploadApiResponse) => {
