@@ -176,7 +176,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
                     }
 
             })
-            if (product) {
+            if (product && images) {
                 try {
                     const createdImage = await Promise.all(
                         uploadResult.map((img: UploadApiResponse) => {
