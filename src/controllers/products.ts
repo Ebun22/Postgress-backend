@@ -155,16 +155,18 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
         }
     }
 
-    if(category.name){
-        createCategories.create = parsedCategory.map((cat: Category) => ({
-            name: cat.name,
-            parentId: cat.parentId,
-        }))
-    }
-    else{
-        createCategories.connect = parsedCategory.map((cat: Category) => ({
-            id: cat.id
-        }))
+    if(category){
+        if(category.name){
+            createCategories.create = parsedCategory.map((cat: Category) => ({
+                name: cat.name,
+                parentId: cat.parentId,
+            }))
+        }
+        else{
+            createCategories.connect = parsedCategory.map((cat: Category) => ({
+                id: cat.id
+            }))
+        }
     }
 
     try {
@@ -390,13 +392,18 @@ export const manageCategoriesOnProduct = async (req: Request, res: Response, nex
 export const totalOnProductScreen = async (req: Request, res: Response, next: NextFunction) => {
     await prisma.$transaction(async (tx) => {
         //all order
-        const totalOrder = await tx.order.count()
+        const totalProducts = await tx.product.aggregate({
+            _count: {
+                _all: true,
+                stockQuantity: true,
+            }
+        })
         //all status
         const totalStatus = await tx.orderEvent.groupBy({
             by: ['status'],
             _count: true
         })
 
-        return res.status(200).json({ success: true, status: 200, data: [{ totalOrder, totalStatus }] })
+        return res.status(200).json({ success: true, status: 200, data: [{ totalProducts, totalStatus }] })
     })
 }
