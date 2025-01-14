@@ -170,7 +170,7 @@ export const updateRecipe = async (req: Request, res: Response, next: NextFuncti
                 },
                 product: {
                     create: newProduct?.map((item: { Id: string }) => ({
-                        productId: item.Id,
+                        productId: item.Id, 
                     })),
                 }
             }

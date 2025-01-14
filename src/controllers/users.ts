@@ -161,29 +161,13 @@ export const getTotalOnDashboard = async (req: Request, res: Response, next: Nex
        //total sales
     await prisma.$transaction(async (tx) => {
         //total Products
-        const totalProducts = await tx.product.findMany({
-            include: {
-                _count: true
-            }
-        })
+        const totalProducts = await tx.product.count()
          //total orders
-        const totalOrder = await tx.order.findMany({
-            include: {
-                _count: true
-            }
-        })
+        const totalOrder = await tx.order.count()
            //total Recipe
-        const totalRecipe = await tx.recipe.findMany({
-            include: {
-                _count: true
-            }
-        })
+        const totalRecipe = await tx.recipe.count()
         //total Custumers
-        const totalCustomers = await tx.user.findMany({
-            include: {
-                _count: true
-            }
-        })
+        const totalCustomers = await tx.user.count()
 
         return res.status(200).json({success: true, status: 200, data: [{totalProducts}, {totalOrder}, {totalRecipe}, {totalCustomers}]})   
     })
