@@ -387,3 +387,16 @@ export const manageCategoriesOnProduct = async (req: Request, res: Response, nex
     }
 }
 
+export const totalOnProductScreen = async (req: Request, res: Response, next: NextFunction) => {
+    await prisma.$transaction(async (tx) => {
+        //all order
+        const totalOrder = await tx.order.count()
+        //all status
+        const totalStatus = await tx.orderEvent.groupBy({
+            by: ['status'],
+            _count: true
+        })
+
+        return res.status(200).json({ success: true, status: 200, data: [{ totalOrder, totalStatus }] })
+    })
+}
