@@ -168,7 +168,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
     }
 
     try {
-        const updatedProduct = await prisma.$transaction(async (tx) => {
+        const updatedProduct = await prisma.$transaction(async (tx: any) => {
             let product: Product;
             try{
                 product = await tx.product.update({
