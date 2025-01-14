@@ -102,7 +102,7 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
 }
 
 export const updateRecipe = async (req: Request, res: Response, next: NextFunction) => {
-    const { ratings, product, ...body } = req.body;
+    const { ratings, product, isVisible, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
     console.log("This is the files: ",files)
     console.log("Edit recipe is running", files, req.body)
@@ -116,6 +116,7 @@ export const updateRecipe = async (req: Request, res: Response, next: NextFuncti
     const validateRecipe = RecipeUpdateSchma.parse({
         ratings: newRatings,
         image: files || undefined,
+        isVisible: isVisible ? JSON.parse(isVisible) : false,
         ...body
     });
     
