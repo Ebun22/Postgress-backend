@@ -131,7 +131,8 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
         images: files || undefined,
         ...body
     })
-    const {images, ...validatedProduct } = validateProduct 
+    const {images, ...validatedProduct } = validateProduct
+    console.log("Thsi si images: ", images) 
     //If images are sent, add them  to cloudinary
     if (files && Array.isArray(files) && files.length > 0) {
         try {
@@ -168,15 +169,21 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
 
     try {
         const updatedProduct = await prisma.$transaction(async (tx) => {
-            const product = await tx.product.update({
-                where: { id: req.params.id },
-                data: {
-                    ...validatedProduct,
-                    ...(category && {category: createCategories})
-                    }
-
-            })
-            if (product && images) {
+            let product: Product;
+            try{
+                product = await tx.product.update({
+                    where: { id: req.params.id },
+                    data: {
+                        ...validatedProduct,
+                        ...(category && {category: createCategories})
+                        }
+    
+                })
+            }catch(err){
+                throw new NotFoundException("Error updating Product: Product with given id not found")
+            }
+         
+            if (product && images.length > 0) {
                 try {
                     const createdImage = await Promise.all(
                         uploadResult.map((img: UploadApiResponse) => {
@@ -200,7 +207,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
         return res.status(200).json({ status: 200, success: true, data: { ...updatedProduct } });
     } catch (err) {
         console.log("This error in image upload: ", err)
-        throw new NotFoundException("Error updating Product: Product with given id not found")
+        throw new NotFoundException("Error updating Product")
     }
 }
 
