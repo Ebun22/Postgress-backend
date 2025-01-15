@@ -171,5 +171,4 @@ export const getTotalOnDashboard = async (req: Request, res: Response, next: Nex
 
         return res.status(200).json({success: true, status: 200, data: [{totalProducts, totalOrder , totalRecipe , totalCustomers}]})   
     })
- 
 }

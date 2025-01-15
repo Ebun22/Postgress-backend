@@ -184,7 +184,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
             } catch (err) {
                 throw new NotFoundException("Error updating Product: Product with given id not found")
             }
-            
+
             if (images) {
                 if (product && images?.length > 0) {
                     try {
@@ -205,7 +205,6 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
                     }
                 }
             }
-
 
             return product
         })
