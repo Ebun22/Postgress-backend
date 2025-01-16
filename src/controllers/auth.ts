@@ -5,7 +5,7 @@ import nodemailer from "nodemailer";
 import crypto from 'crypto';
 import { prisma } from "..";
 import { BadRequestsException } from "../exceptions/bad-request";
-import {  JWT_SECRET } from "../secrets";
+import { GMAIL_PASSWORD, GMAIL_USER, JWT_SECRET } from "../secrets";
 // GMAIL_PASSWORD, GMAIL_USER,
 import { SignUpSchema } from "../schema/users";
 import { UnprocessableEntity } from "../exceptions/validation";
@@ -63,41 +63,42 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 }
 
 export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
-//     //take in new password and confirm password
+    //take in new password and confirm password
 
-//     //verify that user email sent exists
-//     const user = await prisma.user.findFirst({ where: { email: req.body.email } });
-//     if (!user) {
-//         throw new NotFoundException("User with given email doesn't exist")
-//     }
+    //verify that user email sent exists
+    const user = await prisma.user.findFirst({ where: { email: req.body.email } });
+    if (!user) {
+        throw new NotFoundException("User with given email doesn't exist")
+    }
 
-//      //generate token
-//      const resetToken = crypto.randomBytes(32).toString('hex')
+     //generate token
+     const resetToken = crypto.randomBytes(32).toString('hex')
+     
 
-//     //send email of token to the user's email
-//     const transporter = nodemailer.createTransport({
-//         service: "gmail",
-//         host: "smtp.gmail.com",
-//         port: 587,
-//         secure: false, // true for port 465, false for other ports
-//         auth: {
-//             user: GMAIL_USER,
-//             pass: GMAIL_PASSWORD,
-//         },
-//     });
+    //send email of token to the user's email
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // true for port 465, false for other ports
+        auth: {
+            user: GMAIL_USER,
+            pass: GMAIL_PASSWORD,
+        },
+    });
 
-//     try {
-//         const info = await transporter.sendMail({
-//             from: '"Baddie at Arimax 👻" <maddison53@ethereal.email>', // sender address
-//             to: user.email, // list of receivers
-//             subject: "Password Reset", // Subject line
-//             text: "Hello, you clicked to reset your password", // plain text body
-//             html: "<b>Hello world?</b>", // html body
-//         });
-//         console.log("Message sent: %s", info.messageId);
-//     } catch (err) {
-//         console.log("This is error why mail no send: ", err)
-//     }
+    try {
+        const info = await transporter.sendMail({
+            from: '"Baddie at Arimax 👻" <maddison53@ethereal.email>', // sender address
+            to: user.email, // list of receivers
+            subject: "Password Reset", // Subject line
+            text: "Hello, you clicked to reset your password", // plain text body
+            html: "<b>Hello world?</b>", // html body
+        });
+        console.log("Message sent: %s", info.messageId);
+    } catch (err) {
+        console.log("This is error why mail no send: ", err)
+    }
 
     // const { oldPassword, newPassword } = req.body;
     // const user = await prisma.user.findFirst({ where: { id: req.user.id } });

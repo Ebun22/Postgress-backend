@@ -63,7 +63,6 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
                 }
             })
 
-            await tx.cartItem.deleteMany({ where: { cartId: cart.id } })
             return res.json({ success: true, status: 201, data: { ...order } })
         })
 
@@ -78,7 +77,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 
 export const createCheckout = async (req: Request, res: Response, next: NextFunction) => {
     const stripe = new Stripe(STRIPE_API_KEY);
-
+    console.log('Stripe Key:', STRIPE_API_KEY);
     const orderId = req.params.orderId
 
     const order = await prisma.order.findFirst({
@@ -97,9 +96,12 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
             }
         }
     })
+
     if (!order) throw new NotFoundException("This order doesn't exist");
     console.log("This is the order: ", order.products[0].product);
 
+    // delete cart if payment is successfull
+            // await tx.cartItem.deleteMany({ where: { cartId: cart.id } })
     try {
         const session = await stripe.checkout.sessions.create({
             line_items: [
@@ -138,6 +140,11 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
 
 }
 
+//image 1
+// product name
+// price
+// qunatity
+
 export const listOrders = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userOrder = await prisma.order.findFirstOrThrow({ where: { userId: req.user.id } })
@@ -146,9 +153,12 @@ export const listOrders = async (req: Request, res: Response, next: NextFunction
                 include: {
                     products: {
                         select: {
+                            quantity: true,
                             product: {
                                 select: {
-                                    _count: true
+                                    name: true,
+                                    images: true,
+                                    price: true
                                 }
                             }
                         }

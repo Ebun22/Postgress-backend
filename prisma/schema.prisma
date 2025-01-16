@@ -41,6 +41,7 @@ model User {
   address                  ShippingAddress[]
   Order                    Order[]
   Wishlist                 Wishlist[]
+  token                    Token[]
 
   @@map("user") //maps the model to be assesible under the name users
 }
@@ -55,7 +56,7 @@ model ShippingAddress {
   deliveryInstructions String?
   receiverInformation  String?
   number               String
-  isDefault            Boolean  @default(false) 
+  isDefault            Boolean  @default(false)
   userId               String
   user                 User?    @relation(fields: [userId], references: [id])
   createdAt            DateTime @default(now())
@@ -135,6 +136,7 @@ model Recipe {
 
   @@map("recipes")
 }
+
 model RecipeProducts {
   id         String   @id @default(cuid())
   productId  String
@@ -198,16 +200,16 @@ model Review {
 }
 
 model Order {
-  id        String           @id @default(cuid())
-  netAmount Decimal
-  shippingFee Decimal @default(0)
-  address   String
-  currency  String?
-  userId    String
-  status    OrderEventStatus @default(PENDING)
-  user      User             @relation(fields: [userId], references: [id])
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id          String           @id @default(cuid())
+  netAmount   Decimal
+  shippingFee Decimal          @default(0)
+  address     String
+  currency    String?
+  userId      String
+  status      OrderEventStatus @default(PENDING)
+  user        User             @relation(fields: [userId], references: [id])
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   products OrderProduct[]
   events   OrderEvent[]
@@ -265,10 +267,21 @@ model Policy {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model FAQ {
   id        String   @id @default(cuid())
-  question     String
-  answer   String
+  question  String
+  answer    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Token {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  question  String
+  expiredAt DateTime
+  createdAt DateTime @default(now())
 }
