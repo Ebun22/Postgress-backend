@@ -2,6 +2,7 @@ import { Response, Request, RequestHandler, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
 import nodemailer from "nodemailer";
+import crypto from 'crypto';
 import { prisma } from "..";
 import { BadRequestsException } from "../exceptions/bad-request";
 import { GMAIL_PASSWORD, GMAIL_USER, JWT_SECRET } from "../secrets";
@@ -69,6 +70,9 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
         throw new NotFoundException("User with given email doesn't exist")
     }
 
+     //generate token
+     const resetToken = crypto.randomBytes(32).toString('hex')
+
     //send email of token to the user's email
     const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -93,8 +97,6 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
     } catch (err) {
         console.log("This is error why mail no send: ", err)
     }
-
-    //generate token
 
     // const { oldPassword, newPassword } = req.body;
     // const user = await prisma.user.findFirst({ where: { id: req.user.id } });

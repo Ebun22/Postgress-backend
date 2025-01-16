@@ -41,7 +41,8 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
             //figure out what address is being sent if default fails
             const order = await tx.order.create({
                 data: {
-                    netAmount: new Decimal(totalPrice),
+                    netAmount: new Decimal(totalPrice + req.body.shippingFee),
+                    shippingFee: new Decimal(req.body.shippingFee),
                     address: address.formattedAddress,
                     userId: req.user.id as string,
                     currency: req.body.currency,
@@ -101,7 +102,8 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
 
     try {
         const session = await stripe.checkout.sessions.create({
-            line_items: order.products.map(({ quantity, product }) => ({
+            line_items: [
+                ...order.products.map(({ quantity, product }) => ({
                 price_data: {
                     currency: order.currency !== null ? order.currency as string : "usd",
                     product_data: {
@@ -111,6 +113,17 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
                 },
                 quantity
             })),
+            {
+                price_data: {
+                    currency: order.currency !== null ? order.currency as string : "usd",
+                    product_data: {
+                        name: "Shipping Fee"
+                    },
+                    unit_amount: Number(order.shippingFee) * 100
+                },
+                quantity: 1
+            }
+        ],
             mode: 'payment',
             success_url: `${req.protocol}://${req.get('host')}${req.path}api/order/success`,
             cancel_url: `${req.protocol}://${req.get('host')}${req.path}api/order/cancel`,

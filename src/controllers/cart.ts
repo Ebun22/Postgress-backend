@@ -14,7 +14,7 @@ export const addItemToCart = async (req: Request, res: Response, next: NextFunct
     let Item: CartItem[] = [];
     let product: Product[] = [];
     let cart: Cart;
-
+console.log("This is cart: ", validateCart)
     //validate if productID exists
     try {
         product = await Promise.all(
@@ -22,7 +22,7 @@ export const addItemToCart = async (req: Request, res: Response, next: NextFunct
                 prisma.product.findFirstOrThrow({ where: { id: productId } })
             )
         )
-
+console.log("This is product: ", product)
         cart = await prisma.cart.findFirst({
             where: { userId: req.user.id },
             include: { cartItems: true }
@@ -64,6 +64,7 @@ export const addItemToCart = async (req: Request, res: Response, next: NextFunct
 
 export const getCart = async (req: Request, res: Response, next: NextFunction) => {
     //make sure cart belongs to user
+    console.log("This is the user: ", req.user)
     try {
         const cart = await prisma.cart.findFirstOrThrow({
             where: { userId: req.user.id },

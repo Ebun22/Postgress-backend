@@ -200,6 +200,7 @@ model Review {
 model Order {
   id        String           @id @default(cuid())
   netAmount Decimal
+  shippingFee Decimal @default(0)
   address   String
   currency  String?
   userId    String
