@@ -54,7 +54,11 @@ export const getAllWishlist = async (req: Request, res: Response, next: NextFunc
     }
     const allWishlist = await prisma.wishlist.findMany({
         include: {
-            product: true
+            product: {
+                include: {
+                    images: true
+                }   
+            }
         },
         take: +finalLimit!,
         skip: cursor ? 1 : 0,

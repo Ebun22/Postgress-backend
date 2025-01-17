@@ -4,7 +4,7 @@ import { BadRequestsException } from "../exceptions/bad-request"
 import Stripe from 'stripe';
 import { Cart, Order, OrderEventStatus, Prisma } from "@prisma/client"
 import { NotFoundException } from "../exceptions/not-found"
-import { STRIPE_API_KEY } from "../secrets";
+import { STRIPE_API_KEY, STRIPE_ENDPOINT_SECRET } from "../secrets";
 import { Decimal } from "@prisma/client/runtime/library";
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
@@ -140,10 +140,45 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
 
 }
 
-//image 1
-// product name
-// price
-// qunatity
+export const stripeWebhook = async (req: Request, res: Response, next: NextFunction) => {
+    // This is your Stripe CLI webhook secret for testing your endpoint locally.
+const endpointSecret = "whsec_c354a1e4476a4eeef1b3ce0f7cc8b13ca94775f78fc096b57b2f0e9a017bc45d";
+
+const sig = req.headers['stripe-signature'];
+const stripe = new Stripe(STRIPE_API_KEY);
+
+  let event;
+
+  try {
+    if (!sig) {
+      throw new Error('Missing Stripe signature');
+    }
+    event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_ENDPOINT_SECRET);
+  } catch (err: unknown) {
+    const errorMessage = (err as Error).message;
+    res.status(400).send(`Webhook Error: ${errorMessage}`);
+    return;
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'checkout.session.completed':
+        console.log("Checkout session completed")
+        console.log(event.data)
+        //if successfull, delete cart
+        //if successfull, send email of success to customer
+        //change order event status to successfull
+   
+
+        //if cancelled, send email of canceled to customer
+        //if cancelled, cahnge order status to ccanceled
+      // Then define and call a function to handle the event payment_intent.succeeded
+      break;
+    // ... handle other event types
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+}
 
 export const listOrders = async (req: Request, res: Response, next: NextFunction) => {
     try {

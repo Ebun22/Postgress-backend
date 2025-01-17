@@ -6,6 +6,7 @@ dotenv.config({path: '.env'});
 export const PORT = process.env.PORT;
 export const JWT_SECRET = process.env.JWT_SECRET!;
 export const STRIPE_API_KEY = process.env.STRIPE_API_KEY!;
+export const STRIPE_ENDPOINT_SECRET = process.env.STRIPE_ENDPOINT_SECRET!;
 export const GMAIL_PASSWORD = process.env.GMAIL_PASSWORD!;
 export const GMAIL_USER = process.env.GMAIL_USER!;
 export const CLOUD_NAME = process.env.CLOUD_NAME;
