@@ -268,12 +268,12 @@ export const getOrderById = async (req: Request, res: Response, next: NextFuncti
                     include: {
                         products: {
                             select: {
+                                quantity: true,
                                 product: {
                                     select: {
                                         name: true,
                                         images: true,
                                         price: true,
-                                        stockQuantity: true
                                     }
                                 }
                             }
