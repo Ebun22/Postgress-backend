@@ -256,7 +256,11 @@ export const getRecipeById = async (req: Request, res: Response, next: NextFunct
         include: {
             product: {
                 include:{
-                    ingredient: true
+                    ingredient: {
+                        include: {
+                            images: true
+                        }
+                    }
                 }
             },
             image: true
