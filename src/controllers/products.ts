@@ -228,6 +228,7 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
     const totalProduct = await prisma.product.count();
     let cursorProduct
     const { limit = 1, cursor } = req.query
+
     if (cursor) {
         cursorProduct = await prisma.product.findUnique({
             where: { id: cursor as string }
@@ -252,15 +253,22 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
         throw new BadRequestsException("Invalid Cursor sent")
     }
 
+    let prevCursor
     //handle main get all product
     if (allProducts) {
         // console.log("This is the last product: ", allProducts[allProducts.length - 1].id, allProducts.length)
         const nextCursor = (allProducts.length == limit) ? allProducts[allProducts.length - 1].id : null
+        if (cursor) {
+            prevCursor = allProducts[0]?.id; // Set the first item's ID as the previous cursor
+        }
         res.json({
             success: true, statusCode: 200, data: [...allProducts], pagination: {
                 // currentPage: currentPage += 1,
                 totaPages: Math.ceil(totalProduct / Number(limit)),
-                nextPageURL: `${req.protocol}://${req.get('host')}${req.path}api/product/?limit=${limit}&cursor=${nextCursor}`
+                nextPageURL: `${req.protocol}://${req.get('host')}${req.path}api/product/?limit=${limit}&cursor=${nextCursor}`,
+                prevPageURL: prevCursor
+                ? `${req.protocol}://${req.get('host')}${req.path}api/product/?limit=${limit}&cursor=${prevCursor}`
+                : null,
             }
         })
         return;
