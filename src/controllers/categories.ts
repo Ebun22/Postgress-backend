@@ -52,7 +52,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
         let category = await prisma.category.update({
             where: { id: req.params.id as string },
             data: {
-                name: validateCategory?.name,
+                name: validateCategory.name ?? undefined,
                 parentId: validateCategory.parentId ? validateCategory.parentId : null,
             }
         })
