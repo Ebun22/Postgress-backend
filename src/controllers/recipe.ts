@@ -253,7 +253,7 @@ export const getRecipeById = async (req: Request, res: Response, next: NextFunct
         where: {
             id: req.params.id
         },
-        include: {
+        select: {
             product: {
                 include:{
                     ingredient: true
