@@ -21,7 +21,7 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
 
     const newRatings = ratings ? Number(ratings) : undefined;
     const newProduct = product ? JSON.parse(product) : undefined;
-    const newIsVisible = isVisible ? JSON.parse(isVisible) : false;         
+    const newIsVisible = isVisible ? JSON.parse(isVisible) : false;
 
     // Validate uploaded files
     if (!files || files.length === 0) {
@@ -104,7 +104,7 @@ export const createRecipe = async (req: Request, res: Response, next: NextFuncti
 export const updateRecipe = async (req: Request, res: Response, next: NextFunction) => {
     const { ratings, product, isVisible, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
-    console.log("This is the files: ",files)
+    console.log("This is the files: ", files)
     console.log("Edit recipe is running", files, req.body)
     let uploadResult: UploadApiResponse[] = [];
 
@@ -119,7 +119,7 @@ export const updateRecipe = async (req: Request, res: Response, next: NextFuncti
         isVisible: isVisible ? JSON.parse(isVisible) : false,
         ...body
     });
-    
+
     console.log("This is the validated Recipe: ", validateRecipe);
     //validate if product exists
     if (newProduct) {
@@ -170,7 +170,7 @@ export const updateRecipe = async (req: Request, res: Response, next: NextFuncti
                 },
                 product: {
                     create: newProduct?.map((item: { Id: string }) => ({
-                        productId: item.Id, 
+                        productId: item.Id,
                     })),
                 }
             }
@@ -185,7 +185,7 @@ export const updateRecipe = async (req: Request, res: Response, next: NextFuncti
 export const deleteRecipe = async (req: Request, res: Response, next: NextFunction) => {
     //delete recipe with given id
     //delete recipeProduct with given recipeId as well
-    try{
+    try {
         await prisma.$transaction(async (tx) => {
             await tx.recipeProducts.deleteMany({ where: { recipeId: req.params.id } })
             const deletedRecipe = await tx.recipe.delete({ where: { id: req.params.id } })
@@ -194,7 +194,7 @@ export const deleteRecipe = async (req: Request, res: Response, next: NextFuncti
                 return;
             }
         })
-    }catch(err){
+    } catch (err) {
         console.log(err);
         throw new NotFoundException("Recipe with given Id not found")
     }
@@ -217,7 +217,7 @@ export const getAllRecipes = async (req: Request, res: Response, next: NextFunct
     }
     const allRecipe = await prisma.recipe.findMany({
         include: {
-  
+
             image: true
         },
         take: +finalLimit!,
@@ -232,16 +232,22 @@ export const getAllRecipes = async (req: Request, res: Response, next: NextFunct
     if (allRecipe.length == 0 && cursor) {
         throw new BadRequestsException("Invalid Cursor sent")
     }
-
+    let prevCursor
     //handle main get all recipe
     if (allRecipe) {
         console.log("This is the last Recipe: ", allRecipe[allRecipe.length - 1].id, allRecipe.length)
         const nextCursor = (allRecipe.length == finalLimit) ? allRecipe[allRecipe.length - 1].id : null
+        if (cursor) {
+            prevCursor = allRecipe[0]?.id; // Set the first item's ID as the previous cursor
+        }
         res.json({
             success: true, statusCode: 200, data: [...allRecipe], pagination: {
                 // currentPage: currentPage += 1,
                 totaPages: Math.ceil(totalRecipe / Number(finalLimit)),
-                nextPageURL: `${req.protocol}://${req.get('host')}${req.path}api/recipe/?limit=${finalLimit}&cursor=${nextCursor}`
+                nextPageURL: `${req.protocol}://${req.get('host')}${req.path}api/recipe/?limit=${finalLimit}&cursor=${nextCursor}`,
+                prevPageURL: prevCursor
+                    ? `${req.protocol}://${req.get('host')}${req.path}api/recipe/?limit=${finalLimit}&cursor=${prevCursor}`
+                    : null,
             }
         })
         return;
@@ -255,7 +261,7 @@ export const getRecipeById = async (req: Request, res: Response, next: NextFunct
         },
         include: {
             product: {
-                include:{
+                include: {
                     ingredient: {
                         include: {
                             images: true
