@@ -132,7 +132,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
         ...body
     })
     const { images, ...validatedProduct } = validateProduct
-    console.log("Thsi si images: ", images)
+ 
     //If images are sent, add them  to cloudinary
     if (files && Array.isArray(files) && files.length > 0) {
         try {
@@ -256,7 +256,6 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
     let prevCursor
     //handle main get all product
     if (allProducts) {
-        // console.log("This is the last product: ", allProducts[allProducts.length - 1].id, allProducts.length)
         const nextCursor = (allProducts.length == limit) ? allProducts[allProducts.length - 1].id : null
         if (cursor) {
             prevCursor = allProducts[0]?.id; // Set the first item's ID as the previous cursor
@@ -438,6 +437,9 @@ export const getMostLikedProduct = async (req: Request, res: Response, next: Nex
     const randomProducts = await prisma.product.findMany({
       skip: randomOffset,
       take: 5,
+      include: {
+        images: true
+    }
     });
 
     return res.status(200).json({ success: true, status: 200, data: randomProducts });
