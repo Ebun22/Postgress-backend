@@ -427,3 +427,18 @@ export const totalOnProductScreen = async (req: Request, res: Response, next: Ne
         return res.status(200).json({ success: true, status: 200, data: [{ totalProducts, totalInStock, totalOutOfStock, totalOrder }] })
     })
 }
+
+export const getMostLikedProduct = async (req: Request, res: Response, next: NextFunction) => {
+    const totalProducts = await prisma.product.count();
+
+    // Generate a random offset
+    const randomOffset = Math.max(0, Math.floor(Math.random() * (totalProducts - 5)));
+    
+    // Fetch 5 products starting from the random offset
+    const randomProducts = await prisma.product.findMany({
+      skip: randomOffset,
+      take: 5,
+    });
+
+    return res.status(200).json({ success: true, status: 200, data: randomProducts });
+}
