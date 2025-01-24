@@ -281,7 +281,6 @@ model Token {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   token     String   @unique
-  question  String
   expiredAt DateTime
   createdAt DateTime @default(now())
 }

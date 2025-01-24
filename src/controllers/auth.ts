@@ -6,12 +6,19 @@ import crypto from 'crypto';
 import { prisma } from "..";
 import { BadRequestsException } from "../exceptions/bad-request";
 import { GMAIL_PASSWORD, GMAIL_USER, JWT_SECRET } from "../secrets";
-// GMAIL_PASSWORD, GMAIL_USER,
-import { SignUpSchema } from "../schema/users";
+import { SignUpSchema, UpdatePasswordSchema } from "../schema/users";
 import { UnprocessableEntity } from "../exceptions/validation";
 import { ZodError } from "zod";
 import { InternalException } from "../exceptions/internal-exception";
 import { NotFoundException } from "../exceptions/not-found";
+import { generateToken } from "../utils/generateToken";
+import { emailSender } from "../utils/sendEmail";
+import { Token, User } from "@prisma/client";
+import { createJWTToken } from "../utils/createJWTToken";
+
+interface TokenWithUser extends Token {
+    user: User;
+}
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
     const { email, name, number, password } = req.body;
@@ -53,17 +60,71 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         throw new BadRequestsException("Incorrect password")
     }
 
-    const token = jwt.sign({
-        userId: user!.id
-    }, JWT_SECRET);
-    const { password: hashedPassword, ...userWithoutPassword } = user;
-    res.json({ success: true, status: 200, data: { ...userWithoutPassword, token } })
-
-    return;
+    const token = await createJWTToken(user, res)
+    return token;
 }
 
+// send otp route
+export const getOTP = async (req: Request, res: Response, next: NextFunction) => {
+    //verify that user email sent exists
+    const user = await prisma.user.findFirst({ where: { email: req.body.email } });
+    if (!user) {
+        throw new NotFoundException("User with given email doesn't exist")
+    }
+
+    const token = generateToken();
+    console.log("this is token: ", token)
+    const resetToken = crypto.createHash('sha256').update(token.toString()).digest('hex');
+
+    const resetTokenExpiry = Date.now() + 10 * 60 * 1000; // expires in 10 mins
+
+    await prisma.token.create({
+        data: {
+            token: resetToken,
+            expiredAt: new Date(resetTokenExpiry),
+            userId: user.id
+        }
+    })
+
+    //send email of token to the user's email
+    try {
+        const result = await emailSender(req, user.email, "OTP Login", 'OTPLogin', token)
+        if (result === "sent") return res.json({ status: 200, success: true, message: "email successfully sent to user" });
+    } catch (err) {
+        throw new BadRequestsException("Error while sending email")
+    }
+}
+
+//OTP LOGIN 
+export const OTPLogin = async (req: Request, res: Response, next: NextFunction) => {
+    let token: TokenWithUser;
+
+    //get the reset token from body & encrypt it
+    const resetToken = crypto.createHash('sha256').update((req.body.token).toString()).digest('hex')
+
+    //find a user who matches that token & check if the token is expired: expiredAt > new date now
+    try {
+        token = await prisma.token.findFirstOrThrow({
+            where: {
+                token: resetToken
+            },
+            include: {
+                user: true
+            }
+        })
+
+        if (token) {
+            const authToken = await createJWTToken(token.user, res)
+            return authToken;
+        }
+    } catch (err) {
+        console.log(err)
+        throw new UnprocessableEntity("Token is invalid or expired", err)
+    }
+}
+
+
 export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
-    //take in new password and confirm password
 
     //verify that user email sent exists
     const user = await prisma.user.findFirst({ where: { email: req.body.email } });
@@ -71,54 +132,81 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
         throw new NotFoundException("User with given email doesn't exist")
     }
 
-     //generate token
-     const resetToken = crypto.randomBytes(32).toString('hex')
-     
-
-    //send email of token to the user's email
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false, // true for port 465, false for other ports
-        auth: {
-            user: GMAIL_USER,
-            pass: GMAIL_PASSWORD,
-        },
-    });
-
-    try {
-        const info = await transporter.sendMail({
-            from: '"Baddie at Arimax 👻" <maddison53@ethereal.email>', // sender address
-            to: user.email, // list of receivers
-            subject: "Password Reset", // Subject line
-            text: "Hello, you clicked to reset your password", // plain text body
-            html: "<b>Hello world?</b>", // html body
-        });
-        console.log("Message sent: %s", info.messageId);
-    } catch (err) {
-        console.log("This is error why mail no send: ", err)
+    //generate token
+    const generateToken = () => {
+        const buffer = crypto.randomBytes(2);
+        const randomValue = buffer.readUInt16BE(0);
+        return 1000 + (randomValue % 9000)
     }
 
-    // const { oldPassword, newPassword } = req.body;
-    // const user = await prisma.user.findFirst({ where: { id: req.user.id } });
+    const token = generateToken();
+    console.log("this is token: ", token)
+    const resetToken = crypto.createHash('sha256').update(token.toString()).digest('hex');
 
-    // if (!user) {
-    //     throw new NotFoundException("User not found")
-    // }
+    const resetTokenExpiry = Date.now() + 30 * 60 * 1000; // expires in 10 mins
 
-    // const isPasswordCorrect = await bcrypt.compare(oldPassword, user!.password)
-    // if (!isPasswordCorrect) {
-    //     throw new BadRequestsException("Incorrect password")
-    // }
+    await prisma.token.create({
+        data: {
+            token: resetToken,
+            expiredAt: new Date(resetTokenExpiry),
+            userId: user.id
+        }
+    })
 
-    // const hashedPassword = bcrypt.hashSync(newPassword, 10);
-    // await prisma.user.update({
-    //     where: { id: req.user.id },
-    //     data: { password: hashedPassword }
-    // })
+    //send email of token to the user's email
+    try {
+        const result = await emailSender(req, user.email, "Password Reset", 'resetPassword', token)
+        if (result === "sent") return res.json({ status: 200, success: true, message: "email successfully sent to user" });
+    } catch (err) {
+        throw new BadRequestsException("Error while sending email")
+    }
+}
 
-    // res.json({ success: true, status: 200, message: "Password updated successfully" })
-    // return;
+export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+    let token: TokenWithUser;
+    const newPassword = req.body.password
+
+    const validatePassword = UpdatePasswordSchema.parse(newPassword)
+    //get the reset token from param & encrypt it
+    const resetToken = crypto.createHash('sha256').update((req.params.token).toString()).digest('hex')
+
+    //find a user who matches that token and check if the token is expired: expiredAt > new date now
+    try {
+        token = await prisma.token.findFirstOrThrow({
+            where: {
+                token: resetToken
+            },
+            include: {
+                user: true
+            }
+        })
+    } catch (err) {
+        console.log(err)
+        throw new UnprocessableEntity("Token is invalid or expired", err)
+    }
+
+    if (token) {
+        const userId = token.user.id
+
+        //get user and update user password
+        try {
+            const user = await prisma.user.update({
+                where: { id: userId },
+                data: { password: bcrypt.hashSync(validatePassword as string, 10) }
+            })
+
+            if (user) {
+                //delete token once password is reset
+                await prisma.token.delete({ where: { id: token.id } })
+
+                //log user in instantly
+                const authToken = await createJWTToken(token.user, res)
+                return authToken;
+            }
+        } catch (err) {
+            throw new BadRequestsException("Error changing password")
+        }
+    }
+
 }
 
