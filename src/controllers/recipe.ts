@@ -244,9 +244,9 @@ export const getAllRecipes = async (req: Request, res: Response, next: NextFunct
             success: true, statusCode: 200, data: [...allRecipe], pagination: {
                 // currentPage: currentPage += 1,
                 totaPages: Math.ceil(totalRecipe / Number(finalLimit)),
-                nextPageURL: `${req.protocol}://${req.get('host')}${req.path}api/recipe/?limit=${finalLimit}&cursor=${nextCursor}`,
+                nextPageURL: `${req.protocol}s://${req.get('host')}${req.path}api/recipe/?limit=${finalLimit}&cursor=${nextCursor}`,
                 prevPageURL: prevCursor
-                    ? `${req.protocol}://${req.get('host')}${req.path}api/recipe/?limit=${finalLimit}&cursor=${prevCursor}`
+                    ? `${req.protocol}s://${req.get('host')}${req.path}api/recipe/?limit=${finalLimit}&cursor=${prevCursor}`
                     : null,
             }
         })

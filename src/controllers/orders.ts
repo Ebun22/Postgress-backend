@@ -127,8 +127,8 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
             }
         ],
             mode: 'payment',
-            success_url: `${req.protocol}://${req.get('host')}${req.path}api/order/success`,
-            cancel_url: `${req.protocol}://${req.get('host')}${req.path}api/order/cancel`,
+            success_url: `${req.protocol}s://${req.get('host')}${req.path}api/order/success`,
+            cancel_url: `${req.protocol}s://${req.get('host')}${req.path}api/order/cancel`,
         });
 
         console.log("This is the session: ", session)

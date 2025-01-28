@@ -264,9 +264,9 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
             success: true, statusCode: 200, data: [...allProducts], pagination: {
                 // currentPage: currentPage += 1,
                 totaPages: Math.ceil(totalProduct / Number(limit)),
-                nextPageURL: `${req.protocol}://${req.get('host')}${req.path}api/product/?limit=${limit}&cursor=${nextCursor}`,
+                nextPageURL: `${req.protocol}s://${req.get('host')}${req.path}api/product/?limit=${limit}&cursor=${nextCursor}`,
                 prevPageURL: prevCursor
-                ? `${req.protocol}://${req.get('host')}${req.path}api/product/?limit=${limit}&cursor=${prevCursor}`
+                ? `${req.protocol}s://${req.get('host')}${req.path}api/product/?limit=${limit}&cursor=${prevCursor}`
                 : null,
             }
         })
