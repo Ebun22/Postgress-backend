@@ -13,7 +13,7 @@ export const SignUpSchema = z.object({
 export const UpdateUserSchema = z.object({
     name: z.string().min(2).optional(),
     defaultShippingAddressId: z.string().nullable().optional()
-})
+}).strict()
 
 export const UpdatePasswordSchema = z.object({
     password: z.string().min(8).optional()
