@@ -200,6 +200,10 @@ export const deleteRecipe = async (req: Request, res: Response, next: NextFuncti
     }
 }
 
+export const getRecipesBySearch = async (req: Request, res: Response, next: NextFunction) => {
+    
+}
+
 export const getAllRecipes = async (req: Request, res: Response, next: NextFunction) => {
     //handle pagination
     const totalRecipe = await prisma.recipe.count();

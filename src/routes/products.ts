@@ -7,7 +7,6 @@ import { upload } from "../middlewares/multer";
 
 
 const productsRoutes: Router = Router()
-
 productsRoutes.get("/total", [authMiddleWare, adminMiddleWare], errorHandler(totalOnProductScreen))
 productsRoutes.get("/liked/", errorHandler(getMostLikedProduct))
 productsRoutes.get("/", errorHandler(getAllProducts))
