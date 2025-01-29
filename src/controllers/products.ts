@@ -281,7 +281,8 @@ export const getProductBySearch = async (req: Request, res: Response, next: Next
     const products = await prisma.product.findMany({
         where: {
             name:{
-                contains: search as string
+                contains: search as string,
+                mode: 'insensitive'
             }
         }
     })
