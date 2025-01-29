@@ -230,7 +230,7 @@ export const getAllRecipes = async (req: Request, res: Response, next: NextFunct
         throw new NotFoundException("No more Recipes found")
     }
     if (allRecipe.length == 0 && cursor) {
-        throw new BadRequestsException("Invalid Cursor sent")
+        throw new BadRequestsException("Invalid Cursor sent") 
     }
     let prevCursor
     //handle main get all recipe

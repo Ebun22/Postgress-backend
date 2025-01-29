@@ -274,6 +274,16 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
     }
 }
 
+//get productby search
+export const getProductBySearch = async (req:Request, res: Response, next: NextFunction) => {
+    const { search } = req.query;
+    const products = await prisma.product.findMany({
+        where: {
+
+        }
+    })
+}
+
 export const getProductById = async (req: Request, res: Response, next: NextFunction) => {
     const product = await prisma.product.findFirstOrThrow({
         where: {
