@@ -201,7 +201,19 @@ export const deleteRecipe = async (req: Request, res: Response, next: NextFuncti
 }
 
 export const getRecipesBySearch = async (req: Request, res: Response, next: NextFunction) => {
-    
+    const { search } = req.params;
+    console.log("This is the search: ", search)
+    const recipes = await prisma.product.findMany({
+        where: {
+            name: search as string
+        }
+    })
+
+    if(recipes.length == 0){
+        throw new NotFoundException("Product not found");
+    }
+
+    return res.json({ success: true, status: 200, data: products })
 }
 
 export const getAllRecipes = async (req: Request, res: Response, next: NextFunction) => {
@@ -221,7 +233,6 @@ export const getAllRecipes = async (req: Request, res: Response, next: NextFunct
     }
     const allRecipe = await prisma.recipe.findMany({
         include: {
-
             image: true
         },
         take: +finalLimit!,

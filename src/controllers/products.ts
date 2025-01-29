@@ -280,7 +280,9 @@ export const getProductBySearch = async (req: Request, res: Response, next: Next
     console.log("This is the search: ", search)
     const products = await prisma.product.findMany({
         where: {
-            name: search as string
+            name:{
+                contains: search as string
+            }
         }
     })
 
