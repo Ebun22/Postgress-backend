@@ -276,12 +276,17 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
 
 //get productby search
 export const getProductBySearch = async (req: Request, res: Response, next: NextFunction) => {
-    const { search } = req.query;
+    const { search } = req.params;
+    console.log("This is the search: ", search)
     const products = await prisma.product.findMany({
         where: {
             name: search as string
         }
     })
+
+    if(products.length == 0){
+        throw new NotFoundException("Product not found");
+    }
 
     return res.json({ success: true, status: 200, data: products })
 }
