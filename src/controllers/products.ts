@@ -132,7 +132,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
         ...body
     })
     const { images, ...validatedProduct } = validateProduct
- 
+
     //If images are sent, add them  to cloudinary
     if (files && Array.isArray(files) && files.length > 0) {
         try {
@@ -266,8 +266,8 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
                 totaPages: Math.ceil(totalProduct / Number(limit)),
                 nextPageURL: `${req.protocol}s://${req.get('host')}${req.path}api/product/?limit=${limit}&cursor=${nextCursor}`,
                 prevPageURL: prevCursor
-                ? `${req.protocol}s://${req.get('host')}${req.path}api/product/?limit=${limit}&cursor=${prevCursor}`
-                : null,
+                    ? `${req.protocol}s://${req.get('host')}${req.path}api/product/?limit=${limit}&cursor=${prevCursor}`
+                    : null,
             }
         })
         return;
@@ -275,13 +275,15 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
 }
 
 //get productby search
-export const getProductBySearch = async (req:Request, res: Response, next: NextFunction) => {
+export const getProductBySearch = async (req: Request, res: Response, next: NextFunction) => {
     const { search } = req.query;
     const products = await prisma.product.findMany({
         where: {
-
+            name: search as string
         }
     })
+
+    return res.json({ success: true, status: 200, data: products })
 }
 
 export const getProductById = async (req: Request, res: Response, next: NextFunction) => {
@@ -442,14 +444,14 @@ export const getMostLikedProduct = async (req: Request, res: Response, next: Nex
 
     // Generate a random offset
     const randomOffset = Math.max(0, Math.floor(Math.random() * (totalProducts - 5)));
-    
+
     // Fetch 5 products starting from the random offset
     const randomProducts = await prisma.product.findMany({
-      skip: randomOffset,
-      take: 5,
-      include: {
-        images: true
-    }
+        skip: randomOffset,
+        take: 5,
+        include: {
+            images: true
+        }
     });
 
     return res.status(200).json({ success: true, status: 200, data: randomProducts });
