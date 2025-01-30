@@ -208,7 +208,7 @@ export const getRecipesBySearch = async (req: Request, res: Response, next: Next
         where: {
             OR: [
                 {
-                    name:{
+                    name: {
                         contains: search as string,
                         mode: 'insensitive'
                     }
@@ -217,7 +217,7 @@ export const getRecipesBySearch = async (req: Request, res: Response, next: Next
                     product: {
                         some: {
                             ingredient: {
-                                name:{
+                                name: {
                                     contains: search as string,
                                     mode: 'insensitive'
                                 }
@@ -264,8 +264,13 @@ export const getAllRecipes = async (req: Request, res: Response, next: NextFunct
     }
     const allRecipe = await prisma.recipe.findMany({
         include: {
-            image: true
-        },
+            image: true,
+            _count: {
+                select: {
+                    product: true
+            }
+        }
+    },
         take: +finalLimit!,
         skip: cursor ? 1 : 0,
         cursor: cursorRecipe ? { id: cursorRecipe.id } : undefined,

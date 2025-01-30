@@ -103,7 +103,6 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
         console.log(err)
         throw new BadRequestsException("Category is undefined")
     }
-
 }
 
 export const updateProducts = async (req: Request, res: Response, next: NextFunction) => {
@@ -371,8 +370,6 @@ export const deleteAllProductImage = async (req: Request, res: Response, next: N
     } else {
         throw new BadRequestsException("Image not found in cloud")
     }
-
-
 }
 
 //connect and disconnect categories to products
