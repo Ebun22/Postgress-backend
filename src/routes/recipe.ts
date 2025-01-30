@@ -3,12 +3,13 @@ import { errorHandler } from "../error-handler";
 import { authMiddleWare }  from "../middlewares/auth";
 import { adminMiddleWare } from "../middlewares/admin";
 import { upload } from "../middlewares/multer";
-import { createRecipe, deleteAllRecipeImage, deleteRecipe, deleteRecipeImageById, getAllRecipes, getRecipeById, updateRecipe } from "../controllers/recipe";
+import { createRecipe, deleteAllRecipeImage, deleteRecipe, deleteRecipeImageById, getAllRecipes, getRecipeById, getRecipesBySearch, updateRecipe } from "../controllers/recipe";
 
 
 const recipeRoutes: Router = Router()
 
 recipeRoutes.get("/", errorHandler(getAllRecipes))
+recipeRoutes.get("/:search", errorHandler(getRecipesBySearch))
 recipeRoutes.get("/:id", errorHandler(getRecipeById))
 recipeRoutes.post("/", upload.array('image', 3), [authMiddleWare, adminMiddleWare], errorHandler(createRecipe))
 recipeRoutes.put("/:id", upload.array('image', 3), [authMiddleWare, adminMiddleWare], errorHandler(updateRecipe))

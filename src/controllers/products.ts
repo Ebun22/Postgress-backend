@@ -306,7 +306,6 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
                     name: true,
                     parentId: true
                 }
-
             },
             images: true
         }

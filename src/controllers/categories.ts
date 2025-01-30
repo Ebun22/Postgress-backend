@@ -39,7 +39,7 @@ export const createCategories = async (req: Request, res: Response, next: NextFu
 
 export const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
     const validateCategory = UpdateCategorySchema.parse(req.body);
-    
+
     //if a parent id is sent, validate if its an existing category before appending
     if (validateCategory.parentId !== null) {
         try {
@@ -68,6 +68,13 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
 export const getAllCategories = async (req: Request, res: Response, next: NextFunction) => {
     let categories = await prisma.category.findMany();
     return res.json({ success: true, status: 200, data: [...categories] })
+}
+
+export const getCategoryBySearch = async (req: Request, res: Response, next: NextFunction) => {
+    let categories = await prisma.category.findMany({
+        where: {
+        }
+    })
 }
 
 export const getCategoriesById = async (req: Request, res: Response, next: NextFunction) => {

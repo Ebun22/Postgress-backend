@@ -10,6 +10,7 @@ import { BadRequestsException } from "../exceptions/bad-request";
 import cloudinary from "../cloudinary";
 import { UploadApiResponse } from "cloudinary";
 import { RecipeSchema, RecipeUpdateSchma } from "../schema/recipe";
+import { truncate } from "fs";
 
 type RecipeWithImages = Recipe & {
     image: Image[];
@@ -203,17 +204,47 @@ export const deleteRecipe = async (req: Request, res: Response, next: NextFuncti
 export const getRecipesBySearch = async (req: Request, res: Response, next: NextFunction) => {
     const { search } = req.params;
     console.log("This is the search: ", search)
-    const recipes = await prisma.product.findMany({
+    const recipes = await prisma.recipe.findMany({
         where: {
-            name: search as string
+            OR: [
+                {
+                    name:{
+                        contains: search as string,
+                        mode: 'insensitive'
+                    }
+                },
+                {
+                    product: {
+                        some: {
+                            ingredient: {
+                                name:{
+                                    contains: search as string,
+                                    mode: 'insensitive'
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        include: {
+            product: {
+                select: {
+                    ingredient: {
+                        select: {
+                            name: true
+                        }
+                    }
+                }
+            }
         }
     })
 
-    if(recipes.length == 0){
-        throw new NotFoundException("Product not found");
+    if (recipes.length == 0) {
+        throw new NotFoundException("Recipe not found");
     }
 
-    return res.json({ success: true, status: 200, data: products })
+    return res.json({ success: true, status: 200, data: recipes })
 }
 
 export const getAllRecipes = async (req: Request, res: Response, next: NextFunction) => {
@@ -245,7 +276,7 @@ export const getAllRecipes = async (req: Request, res: Response, next: NextFunct
         throw new NotFoundException("No more Recipes found")
     }
     if (allRecipe.length == 0 && cursor) {
-        throw new BadRequestsException("Invalid Cursor sent") 
+        throw new BadRequestsException("Invalid Cursor sent")
     }
     let prevCursor
     //handle main get all recipe
