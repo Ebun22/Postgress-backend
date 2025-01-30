@@ -9,11 +9,11 @@ import { BadRequestsException } from "../exceptions/bad-request";
 
 export const createShippingAddress = async (req: Request, res: Response, next: NextFunction) => {
     //if isDefault is true, get the id and set as default
-    const {isDefault, ...body} = req.body;
+    const { isDefault, ...body } = req.body;
     //if user has no previous address, current first address should be set as default 
     ShippingAddressSchema.parse(req.body);
     const address = await prisma.shippingAddress.create({ data: { ...req.body, userId: req.user.id } });
-    if(isDefault){
+    if (isDefault) {
         await prisma.user.update({
             where: { id: req.user.id },
             data: { defaultShippingAddressId: address.id }
@@ -24,7 +24,7 @@ export const createShippingAddress = async (req: Request, res: Response, next: N
 
 export const getShippingAddress = async (req: Request, res: Response, next: NextFunction) => {
     // console.log("This is the user id: ", req.user.id)
-    const address = await prisma.shippingAddress.findMany({where: {userId: req.user.id}});
+    const address = await prisma.shippingAddress.findMany({ where: { userId: req.user.id } });
     // if(address.userId !== req.user.id)
     res.status(200).json({ success: true, statusCode: 200, data: [...address] });
     return;
@@ -63,7 +63,7 @@ export const deleteShippingAddress = async (req: Request, res: Response, next: N
 
         if (!user) {
             return;
-        } 
+        }
 
         //if shippingAddress to be deleted is == to default address, set default address to null
         await prisma.shippingAddress.delete({ where: { id: req.params.id } })
@@ -77,7 +77,7 @@ export const deleteShippingAddress = async (req: Request, res: Response, next: N
 export const getUser = async (req: Request, res: Response, next: NextFunction) => {
     const user = await prisma.user.findUnique({
         where: { id: req.user.id },
-        include: { address: true}
+        include: { address: true }
     })
     res.json({ success: true, status: 200, data: { ...user } })
     return;
@@ -96,23 +96,27 @@ export const getAllUser = async (req: Request, res: Response, next: NextFunction
             updatedAt: true,
             _count: {
                 select: {
-                  Order: true, 
+                    Order: true,
                 },
             },
-          },
+        },
     })
 
-    res.json({ success: true, status: 200, data: [ ...user ] })
+    res.json({ success: true, status: 200, data: [...user] })
     return;
 }
 
 export const getCustomersBySearch = async (req: Request, res: Response, next: NextFunction) => {
+    const { search } = req.params;
+    if(!search) {
+        throw new UnprocessableEntity("Search query is required");
+    }
     const users = await prisma.user.findMany({
         where: {
             OR: [
-                { name: { contains: req.params.search } },
-                { email: { contains: req.params.search } },
-                { number: { contains: req.params.search } }
+                { name: { contains: search } },
+                { email: { contains: search } },
+                { number: { contains: search } }
             ]
         },
         select: {
@@ -126,16 +130,16 @@ export const getCustomersBySearch = async (req: Request, res: Response, next: Ne
             updatedAt: true,
             _count: {
                 select: {
-                  Order: true, 
+                    Order: true,
                 },
             },
-          },
+        },
     })
 }
 
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
     const user = await prisma.user.findFirstOrThrow({
-        where: {id: req.params.id},
+        where: { id: req.params.id },
         select: {
             id: true,
             email: true,
@@ -147,7 +151,7 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
             updatedAt: true,
             _count: {
                 select: {
-                  Order: true, 
+                    Order: true,
                 },
             },
             Order: {
@@ -155,10 +159,10 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
                     products: true
                 }
             },
-          },
+        },
     })
 
-    res.json({ success: true, status: 200, data: {...user} })
+    res.json({ success: true, status: 200, data: { ...user } })
     return;
 }
 
@@ -185,17 +189,17 @@ export const editUser = async (req: Request, res: Response, next: NextFunction) 
 
 //Totals on dashboard
 export const getTotalOnDashboard = async (req: Request, res: Response, next: NextFunction) => {
-       //total sales
+    //total sales
     await prisma.$transaction(async (tx) => {
         //total Products
         const totalProducts = await tx.product.count()
-         //total orders
+        //total orders
         const totalOrder = await tx.order.count()
-           //total Recipe
+        //total Recipe
         const totalRecipe = await tx.recipe.count()
         //total Custumers
         const totalCustomers = await tx.user.count()
 
-        return res.status(200).json({success: true, status: 200, data: [{totalProducts, totalOrder , totalRecipe , totalCustomers}]})   
+        return res.status(200).json({ success: true, status: 200, data: [{ totalProducts, totalOrder, totalRecipe, totalCustomers }] })
     })
 }
