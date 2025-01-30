@@ -243,6 +243,13 @@ export const getOrdersBySearch = async (req: Request, res: Response, next: NextF
                         }
                     }
                 ]
+            },
+            include: {
+                user: {
+                    select: {
+                        name: true
+                    }
+                }
             }
         })
         if (orders.length === 0) {

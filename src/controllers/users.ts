@@ -106,6 +106,33 @@ export const getAllUser = async (req: Request, res: Response, next: NextFunction
     return;
 }
 
+export const getCustomersBySearch = async (req: Request, res: Response, next: NextFunction) => {
+    const users = await prisma.user.findMany({
+        where: {
+            OR: [
+                { name: { contains: req.params.search } },
+                { email: { contains: req.params.search } },
+                { number: { contains: req.params.search } }
+            ]
+        },
+        select: {
+            id: true,
+            email: true,
+            name: true,
+            number: true,
+            role: true,
+            defaultShippingAddressId: true,
+            createdAt: true,
+            updatedAt: true,
+            _count: {
+                select: {
+                  Order: true, 
+                },
+            },
+          },
+    })
+}
+
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
     const user = await prisma.user.findFirstOrThrow({
         where: {id: req.params.id},
