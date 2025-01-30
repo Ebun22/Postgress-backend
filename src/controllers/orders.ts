@@ -212,6 +212,10 @@ export const listOrders = async (req: Request, res: Response, next: NextFunction
     }
 }
 
+export const getOrdersBySearch = async (req: Request, res: Response, next: NextFunction) => {
+
+}
+
 export const EditOrderStatus = async (req: Request, res: Response, next: NextFunction) => {
     let order: Order;
 

@@ -73,7 +73,8 @@ export const getCategoryBySearch = async (req: Request, res: Response, next: Nex
         let categories = await prisma.category.findMany({
             where: {
                 name: {
-                    contains: req.params.search
+                    contains: req.params.search,
+                    mode: "insensitive"
                 }
             }
         })
