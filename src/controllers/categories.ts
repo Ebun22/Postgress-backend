@@ -61,9 +61,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
     } catch (err) {
         throw new NotFoundException("Category with given Id doesn't exist")
     }
-
 }
-
 
 export const getAllCategories = async (req: Request, res: Response, next: NextFunction) => {
     let categories = await prisma.category.findMany();
