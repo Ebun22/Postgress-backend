@@ -14,6 +14,12 @@ export const ProductSchema = z.object({
   SKU: z.string().optional(),
   stockQuantity: z.number().int(),
   rating: z.number().optional(),
+  variant: z.array(z.object({
+    name: z.string(), 
+    stock: z.number().int(), 
+    price: z.number().int(),  
+    specification: z.string()
+  })),
   isVisible: z.boolean().default(false),
   images: z.any()
     .refine((files) => {

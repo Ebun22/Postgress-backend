@@ -107,7 +107,7 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
 }
 
 export const updateProducts = async (req: Request, res: Response, next: NextFunction) => {
-    const { price, stockQuantity, attributes, isVisible, category, discount, isFavourite, ...body } = req.body;
+    const { price, stockQuantity, attributes, isVisible, category, discount, variant, isFavourite, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
 
     console.log("Edit product is running", files, req.body)
@@ -117,6 +117,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
     const newPrice = price ? Number(price) : undefined;
     const newStockQuantity = stockQuantity ? Number(stockQuantity) : undefined;
     const parsedCategory = category ? JSON.parse(category) : undefined;
+    const parsedVariant = variant ? JSON.parse(variant) : undefined;
     const newDiscount = discount ? Number(discount) : undefined;
     const newIsVisible = isVisible ? JSON.parse(isVisible) : false;
 
@@ -126,13 +127,14 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
         price: newPrice,
         stockQuantity: newStockQuantity,
         category: parsedCategory,
+        variant: parsedVariant,
         discount: newDiscount,
         isVisible: newIsVisible,
         images: files || undefined,
         ...body
     })
     const { images, ...validatedProduct } = validateProduct
-
+console.log("Thsi si product: ", validateProduct)
     //If images are sent, add them  to cloudinary
     if (files && Array.isArray(files) && files.length > 0) {
         try {
