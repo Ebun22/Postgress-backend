@@ -112,14 +112,23 @@ export const getCustomersBySearch = async (req: Request, res: Response, next: Ne
     if (!search) {
         throw new UnprocessableEntity("Search query is required", "No search query found");
     }
-    
+
     try {
         const users = await prisma.user.findMany({
             where: {
                 OR: [
-                    { name: { contains: search } },
-                    { email: { contains: search } },
-                    { number: { contains: search } }
+                    { name: { 
+                        contains: search,
+                        mode: "insensitive"
+                    } },
+                    { email: { 
+                        contains: search,
+                        mode: "insensitive"
+                     } },
+                    { number: { 
+                        contains: search,
+                        mode: "insensitive"
+                    } }
                 ]
             },
             select: {
@@ -146,7 +155,6 @@ export const getCustomersBySearch = async (req: Request, res: Response, next: Ne
         console.log(err)
         throw new NotFoundException("No user found")
     }
-
 }
 
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
