@@ -69,7 +69,7 @@ export const getAllCategories = async (req: Request, res: Response, next: NextFu
 }
 
 export const getCategoryBySearch = async (req: Request, res: Response, next: NextFunction) => {
-    try{
+    try {
         let categories = await prisma.category.findMany({
             where: {
                 name: {
@@ -79,8 +79,13 @@ export const getCategoryBySearch = async (req: Request, res: Response, next: Nex
             }
         })
 
-        return res.json({ success: true, status: 200, data: categories})
-    }catch(err){
+        if (categories.length === 0) {
+            throw new NotFoundException("No Category with given search term found")
+        }
+        
+        return res.json({ success: true, status: 200, data: categories })
+    } catch (err) {
+        console.log("This si error on search: ", err)
         throw new NotFoundException("No Category with given search term found")
     }
 }
