@@ -108,33 +108,45 @@ export const getAllUser = async (req: Request, res: Response, next: NextFunction
 
 export const getCustomersBySearch = async (req: Request, res: Response, next: NextFunction) => {
     const { search } = req.params;
-    if(!search) {
-        throw new UnprocessableEntity("Search query is required");
+
+    if (!search) {
+        throw new UnprocessableEntity("Search query is required", "No search query found");
     }
-    const users = await prisma.user.findMany({
-        where: {
-            OR: [
-                { name: { contains: search } },
-                { email: { contains: search } },
-                { number: { contains: search } }
-            ]
-        },
-        select: {
-            id: true,
-            email: true,
-            name: true,
-            number: true,
-            role: true,
-            defaultShippingAddressId: true,
-            createdAt: true,
-            updatedAt: true,
-            _count: {
-                select: {
-                    Order: true,
+    
+    try {
+        const users = await prisma.user.findMany({
+            where: {
+                OR: [
+                    { name: { contains: search } },
+                    { email: { contains: search } },
+                    { number: { contains: search } }
+                ]
+            },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                number: true,
+                role: true,
+                defaultShippingAddressId: true,
+                createdAt: true,
+                updatedAt: true,
+                _count: {
+                    select: {
+                        Order: true,
+                    },
                 },
             },
-        },
-    })
+        })
+        if (users.length === 0) {
+            throw new NotFoundException("No user found")
+        }
+        return res.json({ success: true, status: 200, data: users })
+    } catch (err) {
+        console.log(err)
+        throw new NotFoundException("No user found")
+    }
+
 }
 
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {

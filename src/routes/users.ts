@@ -2,7 +2,7 @@ import { Router } from "express";
 import { errorHandler } from "../error-handler";
 import { authMiddleWare } from "../middlewares/auth";
 import { adminMiddleWare } from "../middlewares/admin";
-import { createShippingAddress, deleteShippingAddress, editShippingAddress, editUser, getAllUser, getByIdShippingAddress, getShippingAddress, getTotalOnDashboard, getUser, getUserById} from "../controllers/users";
+import { createShippingAddress, deleteShippingAddress, editShippingAddress, editUser, getAllUser, getByIdShippingAddress, getCustomersBySearch, getShippingAddress, getTotalOnDashboard, getUser, getUserById} from "../controllers/users";
 
 const usersRoutes: Router = Router()
 
@@ -19,6 +19,6 @@ usersRoutes.delete("/address/:id", [authMiddleWare], errorHandler(deleteShipping
 usersRoutes.put("/", [authMiddleWare], errorHandler(editUser))
 usersRoutes.get("/", [authMiddleWare], errorHandler(getUser))
 usersRoutes.get("/:id", [authMiddleWare, adminMiddleWare], errorHandler(getUserById))
-
+usersRoutes.get("/search/:search", [authMiddleWare, adminMiddleWare], errorHandler(getCustomersBySearch))
 
 export default usersRoutes;
