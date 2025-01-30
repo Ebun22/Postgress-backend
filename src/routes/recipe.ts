@@ -9,7 +9,7 @@ import { createRecipe, deleteAllRecipeImage, deleteRecipe, deleteRecipeImageById
 const recipeRoutes: Router = Router()
 
 recipeRoutes.get("/", errorHandler(getAllRecipes))
-recipeRoutes.get("/:search", errorHandler(getRecipesBySearch))
+recipeRoutes.get("/search/:search", errorHandler(getRecipesBySearch))
 recipeRoutes.get("/:id", errorHandler(getRecipeById))
 recipeRoutes.post("/", upload.array('image', 3), [authMiddleWare, adminMiddleWare], errorHandler(createRecipe))
 recipeRoutes.put("/:id", upload.array('image', 3), [authMiddleWare, adminMiddleWare], errorHandler(updateRecipe))

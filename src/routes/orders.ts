@@ -13,6 +13,7 @@ orderRoutes.post("/", [authMiddleWare], errorHandler(createOrder))
 orderRoutes.post("/:orderId/checkout", [authMiddleWare], errorHandler(createCheckout))
 orderRoutes.post("/:orderId/stripe/webhook", [authMiddleWare], errorHandler(createCheckout))
 orderRoutes.get("/:id", [authMiddleWare], errorHandler(getOrderById))
+orderRoutes.get("/search/:search", [authMiddleWare], errorHandler(getOrderById))
 orderRoutes.put("/:id", [authMiddleWare], errorHandler(EditOrderStatus))
 orderRoutes.delete("/:id",[authMiddleWare, adminMiddleWare], errorHandler(deleteOrder))
 
