@@ -71,10 +71,19 @@ export const getAllCategories = async (req: Request, res: Response, next: NextFu
 }
 
 export const getCategoryBySearch = async (req: Request, res: Response, next: NextFunction) => {
-    let categories = await prisma.category.findMany({
-        where: {
-        }
-    })
+    try{
+        let categories = await prisma.category.findMany({
+            where: {
+                name: {
+                    contains: req.params.search
+                }
+            }
+        })
+
+        return res.json({ success: true, status: 200, data: categories})
+    }catch(err){
+        throw new NotFoundException("No Category with given search term found")
+    }
 }
 
 export const getCategoriesById = async (req: Request, res: Response, next: NextFunction) => {
