@@ -5,8 +5,6 @@ import { adminMiddleWare } from "../middlewares/admin";
 import { createCategories, deleteCategories, getAllCategories, getCategoriesById, getCategoryBySearch, updateCategory } from "../controllers/categories";
 
 const categoryRoutes: Router = Router()
-//d66e30b2-07b8-46a1-83bc-d6aa175d306d
-
 categoryRoutes.post("/", [authMiddleWare, adminMiddleWare], errorHandler(createCategories))
 categoryRoutes.put("/:id", [authMiddleWare, adminMiddleWare], errorHandler(updateCategory))
 categoryRoutes.get("/", errorHandler(getAllCategories))
