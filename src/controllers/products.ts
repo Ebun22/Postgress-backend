@@ -133,7 +133,7 @@ export const updateProducts = async (req: Request, res: Response, next: NextFunc
         ...body
     })
     const { images, ...validatedProduct } = validateProduct
-console.log("Thsi si product: ", validateProduct)
+    console.log("Thsi si product: ", validateProduct)
     //If images are sent, add them  to cloudinary
     if (files && Array.isArray(files) && files.length > 0) {
         try {
@@ -281,14 +281,18 @@ export const getProductBySearch = async (req: Request, res: Response, next: Next
     console.log("This is the search: ", search)
     const products = await prisma.product.findMany({
         where: {
-            name:{
+            name: {
                 contains: search as string,
                 mode: 'insensitive'
             }
+        },
+        include: {
+            category: true,
+            images: true
         }
     })
 
-    if(products.length == 0){
+    if (products.length == 0) {
         throw new NotFoundException("Product not found");
     }
 
