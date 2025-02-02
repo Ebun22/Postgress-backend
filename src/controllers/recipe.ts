@@ -203,7 +203,7 @@ export const deleteRecipe = async (req: Request, res: Response, next: NextFuncti
 
 export const getRecipesBySearch = async (req: Request, res: Response, next: NextFunction) => {
     const { search } = req.params;
-    console.log("This is the search: ", search)
+    
     const recipes = await prisma.recipe.findMany({
         where: {
             OR: [
