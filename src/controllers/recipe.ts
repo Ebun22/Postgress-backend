@@ -228,6 +228,7 @@ export const getRecipesBySearch = async (req: Request, res: Response, next: Next
             ]
         },
         include: {
+            image: true,
             product: {
                 select: {
                     ingredient: {
