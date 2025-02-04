@@ -75,7 +75,7 @@ export const emailSender = async (req: Request, email: string, subject: string, 
                                             
                                             <div style="margin-bottom: 30px; max-width: 300px;">
                                             <h2 style="margin: 0; color: #18181b; font-family: Arial, sans-serif; font-size: 10px; letter-spacing: 2px;">
-                                                ${req.protocol}s://${req.get('host')}${req.path}api/v1/auth/reset-password/${token}
+                                                ${req.protocol}s://${req.get('host')}${req.path}/v1/auth/reset-password/${token}
                                             </h2>
                                             </div>
                                             
