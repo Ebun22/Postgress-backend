@@ -107,9 +107,9 @@ export const OTPLogin = async (req: Request, res: Response, next: NextFunction) 
         token = await prisma.token.findFirstOrThrow({
             where: {
                 AND: [
-                    {token: resetToken},
-                    {expiredAt: {gte: new Date()}}
-                ]    
+                    { token: resetToken },
+                    { expiredAt: { gte: new Date() } }
+                ]
             },
             include: {
                 user: true
@@ -168,6 +168,7 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
 export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
     let token: TokenWithUser;
     // const newPassword = req.body.password
+    console.log("This is the request body: ", req.body)
 
     const validatePassword = UpdatePasswordSchema.parse(req.body)
     //get the reset token from param & encrypt it
@@ -178,9 +179,9 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
         token = await prisma.token.findFirstOrThrow({
             where: {
                 AND: [
-                    {token: resetToken},
-                    {expiredAt: {gte: new Date()}}
-                ]  
+                    { token: resetToken },
+                    { expiredAt: { gte: new Date() } }
+                ]
             },
             include: {
                 user: true
@@ -198,7 +199,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
         try {
             const user = await prisma.user.update({
                 where: { id: userId },
-                data: { password: bcrypt.hashSync(validatePassword as string, 10) }
+                data: { password: bcrypt.hashSync(validatePassword.password as string, 10) }
             })
 
             if (user) {
@@ -210,6 +211,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
                 return authToken;
             }
         } catch (err) {
+            console.log("This is teh error: ", err)
             throw new BadRequestsException("Error changing password")
         }
     }
