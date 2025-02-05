@@ -97,9 +97,10 @@ export const getOTP = async (req: Request, res: Response, next: NextFunction) =>
 //OTP LOGIN 
 export const OTPLogin = async (req: Request, res: Response, next: NextFunction) => {
     let token: TokenWithUser;
+    const otp = req.body.OTP
 
     //get the reset token from body & encrypt it
-    const resetToken = crypto.createHash('sha256').update((req.body.token).toString()).digest('hex')
+    const resetToken = crypto.createHash('sha256').update(otp.toString()).digest('hex')
 
     //find a user who matches that token & check if the token is expired: expiredAt > new date now
     try {
