@@ -167,9 +167,9 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
 
 export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
     let token: TokenWithUser;
-    const newPassword = req.body.password
+    // const newPassword = req.body.password
 
-    const validatePassword = UpdatePasswordSchema.parse(newPassword)
+    const validatePassword = UpdatePasswordSchema.parse(req.body)
     //get the reset token from param & encrypt it
     const resetToken = crypto.createHash('sha256').update((req.params.token).toString()).digest('hex')
 
@@ -177,7 +177,10 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
     try {
         token = await prisma.token.findFirstOrThrow({
             where: {
-                token: resetToken
+                AND: [
+                    {token: resetToken},
+                    {expiredAt: {gte: new Date()}}
+                ]  
             },
             include: {
                 user: true
