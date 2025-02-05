@@ -106,7 +106,10 @@ export const OTPLogin = async (req: Request, res: Response, next: NextFunction) 
     try {
         token = await prisma.token.findFirstOrThrow({
             where: {
-                token: resetToken
+                AND: [
+                    {token: resetToken},
+                    {expiredAt: {gte: new Date()}}
+                ]    
             },
             include: {
                 user: true
