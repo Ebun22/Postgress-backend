@@ -8,7 +8,7 @@ const categoryRoutes: Router = Router()
 categoryRoutes.post("/", [authMiddleWare, adminMiddleWare], errorHandler(createCategories))
 categoryRoutes.put("/:id", [authMiddleWare, adminMiddleWare], errorHandler(updateCategory))
 categoryRoutes.get("/", errorHandler(getAllCategories))
-categoryRoutes.get("/search/:search", [authMiddleWare, adminMiddleWare], errorHandler(getCategoryBySearch))
+categoryRoutes.get("/search/:search", errorHandler(getCategoryBySearch))
 categoryRoutes.get("/:id", errorHandler(getCategoriesById))
 categoryRoutes.delete("/:id", [authMiddleWare, adminMiddleWare], errorHandler(deleteCategories))
 
