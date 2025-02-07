@@ -10,6 +10,11 @@ import { BadRequestsException } from "../exceptions/bad-request";
 import cloudinary from "../cloudinary";
 import { UploadApiResponse } from "cloudinary";
 
+interface ProductCondition {
+    id: string,
+    isVisible?: boolean,
+}
+
 export const createProducts = async (req: Request, res: Response, next: NextFunction) => {
     const { price, stockQuantity, category, isVisible, discount, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
@@ -228,12 +233,25 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
     //handle pagination
     const totalProduct = await prisma.product.count();
     let cursorProduct
-    const { limit = 1, cursor } = req.query
+    const { limit = 1, cursor, visibility } = req.query
+
+    //initialize the where clause condition
+    let condition = { } as ProductCondition
 
     if (cursor) {
-        cursorProduct = await prisma.product.findUnique({
-            where: { id: cursor as string }
-        })
+
+        if (visibility) {
+            condition = {
+                id: cursor as string,
+                isVisible: visibility ? JSON.parse(visibility as string) : false
+            }
+        }
+
+        condition = {
+            id: cursor as string,
+        }
+
+        cursorProduct = await prisma.product.findUnique({where: condition})
 
         if (!cursorProduct) {
             throw new NotFoundException("Product id not found")
