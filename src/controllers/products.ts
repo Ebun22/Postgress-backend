@@ -9,11 +9,22 @@ import { NotFoundException } from "../exceptions/not-found";
 import { BadRequestsException } from "../exceptions/bad-request";
 import cloudinary from "../cloudinary";
 import { UploadApiResponse } from "cloudinary";
-
-interface ProductCondition {
-    id: string,
-    isVisible?: boolean,
-}
+  
+  interface ProductCondition {
+    include: {
+      category: boolean;
+      images: boolean;
+    };
+    where?: { isVisible: boolean };
+    take: number;
+    skip: number;
+    cursor: {
+      id: string;
+    } | undefined;
+    orderBy: {
+      id?: Prisma.SortOrder;
+    };
+  }
 
 export const createProducts = async (req: Request, res: Response, next: NextFunction) => {
     const { price, stockQuantity, category, isVisible, discount, ...body } = req.body;
@@ -232,41 +243,51 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
 export const getAllProducts = async (req: Request, res: Response, next: NextFunction) => {
     //handle pagination
     const totalProduct = await prisma.product.count();
-    let cursorProduct
-    const { limit = 1, cursor, visibility } = req.query
+    let cursorProduct: Product | null = null;
+    const { limit = 1, cursor, visible } = req.query
+
+    console.log("This is the visibility query: ", visible)
 
     //initialize the where clause condition
-    let condition = { } as ProductCondition
+    let condition = {} as ProductCondition
+
+
 
     if (cursor) {
-
-        if (visibility) {
-            condition = {
-                id: cursor as string,
-                isVisible: visibility ? JSON.parse(visibility as string) : false
-            }
-        }
-
-        condition = {
-            id: cursor as string,
-        }
-
-        cursorProduct = await prisma.product.findUnique({where: condition})
-
+        cursorProduct = await prisma.product.findUnique({ where: { id: cursor as string } })
         if (!cursorProduct) {
             throw new NotFoundException("Product id not found")
         }
     }
-    const allProducts = await prisma.product.findMany({
-        include: {
-            category: true,
-            images: true
-        },
-        take: +limit!,
-        skip: cursor ? 1 : 0,
-        cursor: cursorProduct ? { id: cursorProduct.id } : undefined,
-        orderBy: { id: 'asc' }
-    });
+    if (visible) {
+        condition = {
+            include: {
+                category: true,
+                images: true,
+            },
+            where: { isVisible: visible ? JSON.parse(visible as string) : false },
+            take: +limit!,
+            skip: cursor ? 1 : 0,
+            cursor: cursorProduct ? { id: cursorProduct.id } : undefined,
+            orderBy: { id: Prisma.SortOrder.asc }
+
+        }
+    } else {
+        condition = {
+            include: {
+                category: true,
+                images: true,
+            },
+            take: +limit!,
+            skip: cursor ? 1 : 0,
+            cursor: cursorProduct ? { id: cursorProduct.id } : undefined,
+            orderBy: { id: Prisma.SortOrder.asc }
+        }
+    }
+
+    console.log("This is the condition: ", condition)
+
+    const allProducts = await prisma.product.findMany(condition);
 
     if (allProducts.length == 0 && cursor) {
         throw new BadRequestsException("Invalid Cursor sent")
