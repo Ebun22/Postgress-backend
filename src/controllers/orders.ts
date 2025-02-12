@@ -2,10 +2,14 @@ import { Request, Response, NextFunction } from "express"
 import { prisma } from ".."
 import { BadRequestsException } from "../exceptions/bad-request"
 import Stripe from 'stripe';
-import { Cart, Order, OrderEventStatus, Prisma } from "@prisma/client"
+import { Cart, ExchangeRate, Order, OrderEventStatus, Prisma } from "@prisma/client"
 import { NotFoundException } from "../exceptions/not-found"
 import { STRIPE_API_KEY, STRIPE_ENDPOINT_SECRET } from "../secrets";
 import { Decimal } from "@prisma/client/runtime/library";
+
+interface RateType {
+    rate: number
+}
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user.defaultShippingAddressId) return res.json({ success: true, message: "No address is set as default" })
@@ -38,6 +42,9 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
                 }
             })
 
+try{
+
+}catch()
             //figure out what address is being sent if default fails
             const order = await tx.order.create({
                 data: {
@@ -71,6 +78,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
             throw new NotFoundException(err.message)
         }
         console.log("This is error in transactions: ", err)
+        throw new BadRequestsException("sonething went wrong with this transaction")
     }
 
 }
@@ -98,6 +106,23 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
     })
 
     if (!order) throw new NotFoundException("This order doesn't exist");
+    let rateObject: RateType;
+
+    try {
+        rateObject = await prisma.exchangeRate.findFirstOrThrow({
+            where: {
+                toCurrency: {
+                    code: order.currency as string
+                }
+            },
+            select: {
+                rate: true,
+            }
+        })
+        console.log("Thsi si teh rate obj: ", rateObject)
+    } catch {
+        throw new NotFoundException("Exchange Rate not found");
+    }
     console.log("This is the order: ", order.products[0].product);
 
     // delete cart if payment is successfull
@@ -111,7 +136,7 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
                         product_data: {
                             name: product.name
                         },
-                        unit_amount: product.price * 100
+                        unit_amount: (product.price * rateObject.rate) * 100
                     },
                     quantity
                 })),
