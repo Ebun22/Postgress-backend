@@ -13,6 +13,7 @@ interface RateType {
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user.defaultShippingAddressId) return res.json({ success: true, message: "No address is set as default" })
+    let order: Order;
     try {
         await prisma.$transaction(async (tx) => {
             const cart = await tx.cart.findFirst({
@@ -42,35 +43,37 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
                 }
             })
 
-try{
-
-}catch()
-            //figure out what address is being sent if default fails
-            const order = await tx.order.create({
-                data: {
-                    netAmount: new Decimal(totalPrice + req.body.shippingFee),
-                    shippingFee: new Decimal(req.body.shippingFee),
-                    address: address.formattedAddress,
-                    userId: req.user.id as string,
-                    currency: req.body.currency,
-                    products: {
-                        create: cart.cartItems.map((items: { product: { id: string }; quantity: number }) => {
-                            return {
-                                productId: items.product.id,
-                                quantity: items.quantity
-                            }
-                        })
+            try {
+                //figure out what address is being sent if default fails
+                order = await tx.order.create({
+                    data: {
+                        netAmount: new Decimal(totalPrice + req.body.shippingFee),
+                        shippingFee: new Decimal(req.body.shippingFee),
+                        address: address.formattedAddress,
+                        userId: req.user.id as string,
+                        currency: req.body.currency,
+                        products: {
+                            create: cart.cartItems.map((items: { product: { id: string }; quantity: number }) => {
+                                return {
+                                    productId: items.product.id,
+                                    quantity: items.quantity
+                                }
+                            })
+                        }
                     }
-                }
-            })
+                })
+                
+                const orderEvents = await tx.orderEvent.create({
+                    data: {
+                        orderId: order.id
+                    }
+                })
 
-            const orderEvents = await tx.orderEvent.create({
-                data: {
-                    orderId: order.id
-                }
-            })
-
-            return res.json({ success: true, status: 201, data: { ...order } })
+                return res.json({ success: true, status: 201, data: { ...order } })
+            } catch (err) {
+                console.log(err)
+                throw new BadRequestsException("sonething went wrong with this transaction")
+            }
         })
 
     } catch (err) {
