@@ -6,14 +6,17 @@ import { Cart, ExchangeRate, Order, OrderEventStatus, Prisma } from "@prisma/cli
 import { NotFoundException } from "../exceptions/not-found"
 import { STRIPE_API_KEY, STRIPE_ENDPOINT_SECRET } from "../secrets";
 import { Decimal } from "@prisma/client/runtime/library";
+import { UnprocessableEntity } from "../exceptions/validation";
 
 interface RateType {
     rate: number
 }
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user.defaultShippingAddressId) return res.json({ success: true, message: "No address is set as default" })
-    let order: Order;
+    if (!req.user.defaultShippingAddressId) throw new UnprocessableEntity("No address is set as default", null)
+    if (!req.body.shippingFee) throw new UnprocessableEntity("No shipping Fee set", null)
+    if (!req.body.currency) throw new UnprocessableEntity("No set currency", null)
+
     try {
         await prisma.$transaction(async (tx) => {
             const cart = await tx.cart.findFirst({
@@ -45,7 +48,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 
             try {
                 //figure out what address is being sent if default fails
-                order = await tx.order.create({
+                const order = await tx.order.create({
                     data: {
                         netAmount: new Decimal(totalPrice + req.body.shippingFee),
                         shippingFee: new Decimal(req.body.shippingFee),
@@ -62,7 +65,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
                         }
                     }
                 })
-                
+
                 const orderEvents = await tx.orderEvent.create({
                     data: {
                         orderId: order.id
@@ -72,7 +75,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
                 return res.json({ success: true, status: 201, data: { ...order } })
             } catch (err) {
                 console.log(err)
-                throw new BadRequestsException("sonething went wrong with this transaction")
+                throw new BadRequestsException("something went wrong with this transaction")
             }
         })
 
@@ -81,7 +84,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
             throw new NotFoundException(err.message)
         }
         console.log("This is error in transactions: ", err)
-        throw new BadRequestsException("sonething went wrong with this transaction")
+        throw new BadRequestsException("something went wrong with this transaction")
     }
 
 }
