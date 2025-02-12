@@ -34,9 +34,27 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
             if (cart.cartItems.length === 0) {
                 return res.json({ success: true, message: "Cart is empty" })
             }
+            let rateObject: RateType;
+            try {
+                // console.log("Thsi si teh currency", order.currency)
+                rateObject = await prisma.exchangeRate.findFirstOrThrow({
+                    where: {
+                        toCurrency: {
+                            code: req.body.currency as string
+                        }
+                    },
+                    select: {
+                        rate: true,
+                    }
+                })
+                console.log("Thsi si teh rate obj: ", rateObject)
+            } catch(err) {
+                console.log("Thsi is the erorr on finding exchange rate: ", err)
+                throw new NotFoundException("Exchange Rate not found");
+            }
 
             const totalPrice = cart.cartItems.reduce((prev, current) => {
-                return prev += (current.product.price * current.quantity)
+                return prev += ((current.product.price * rateObject.rate) * current.quantity)
             }, 0)
 
 
@@ -65,7 +83,8 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
                         }
                     }
                 })
-
+                
+                console.log("This is teh currency taht i am using now", order, req.body.currency)
                 const orderEvents = await tx.orderEvent.create({
                     data: {
                         orderId: order.id
@@ -91,7 +110,6 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 
 export const createCheckout = async (req: Request, res: Response, next: NextFunction) => {
     const stripe = new Stripe(STRIPE_API_KEY);
-    console.log('Stripe Key:', STRIPE_API_KEY);
     const orderId = req.params.orderId
 
     const order = await prisma.order.findFirst({
@@ -112,23 +130,6 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
     })
 
     if (!order) throw new NotFoundException("This order doesn't exist");
-    let rateObject: RateType;
-
-    try {
-        rateObject = await prisma.exchangeRate.findFirstOrThrow({
-            where: {
-                toCurrency: {
-                    code: order.currency as string
-                }
-            },
-            select: {
-                rate: true,
-            }
-        })
-        console.log("Thsi si teh rate obj: ", rateObject)
-    } catch {
-        throw new NotFoundException("Exchange Rate not found");
-    }
     console.log("This is the order: ", order.products[0].product);
 
     // delete cart if payment is successfull
@@ -142,7 +143,7 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
                         product_data: {
                             name: product.name
                         },
-                        unit_amount: (product.price * rateObject.rate) * 100
+                        unit_amount: product.price * 100
                     },
                     quantity
                 })),
