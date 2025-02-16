@@ -316,14 +316,15 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
 
 //get productby search
 export const getProductBySearch = async (req: Request, res: Response, next: NextFunction) => {
-    const { search } = req.params;
+    const { search,visible } = req.params;
     console.log("This is the search: ", search)
     const products = await prisma.product.findMany({
         where: {
             name: {
                 contains: search as string,
                 mode: 'insensitive'
-            }
+            },
+            isVisible: visible ? JSON.parse(visible) : false
         },
         include: {
             category: true,
