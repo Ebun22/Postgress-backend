@@ -130,6 +130,25 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
     })
 
     if (!order) throw new NotFoundException("This order doesn't exist");
+    let rateObject: RateType;
+
+    try {
+        console.log("Thsi si teh currency", order.currency)
+        rateObject = await prisma.exchangeRate.findFirstOrThrow({
+            where: {
+                toCurrency: {
+                    code: order.currency as string
+                }
+            },
+            select: {
+                rate: true,
+            }
+        })
+        console.log("Thsi si teh rate obj: ", rateObject)
+    } catch(err) {
+        console.log("Thsi is the erorr on finding exchange rate: ", err)
+        throw new NotFoundException("Exchange Rate not found");
+    }
     console.log("This is the order: ", order.products[0].product);
 
     // delete cart if payment is successfull
@@ -143,7 +162,7 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
                         product_data: {
                             name: product.name
                         },
-                        unit_amount: product.price * 100
+                        unit_amount: (product.price * rateObject.rate) * 100
                     },
                     quantity
                 })),
@@ -165,11 +184,10 @@ export const createCheckout = async (req: Request, res: Response, next: NextFunc
 
         console.log("This is the session: ", session)
         return res.json({ success: true, status: 200, data: { id: session.id, url: session.url } })
-    } catch (err) {
+    } catch (err: any) {
         console.log("This is the err: ", err)
-        // return res.json({ success: false, status: {err.statusCode}, message: {err.raw.message} })
+        return res.json({ success: false, status: 422, message: err.raw.message })
     }
-
 }
 
 export const stripeWebhook = async (req: Request, res: Response, next: NextFunction) => {

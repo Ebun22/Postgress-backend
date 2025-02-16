@@ -11,7 +11,7 @@ productsRoutes.get("/total", [authMiddleWare, adminMiddleWare], errorHandler(tot
 productsRoutes.get("/liked/", errorHandler(getMostLikedProduct))
 productsRoutes.get("/", errorHandler(getAllProducts))
 productsRoutes.get("/:id", errorHandler(getProductById))
-productsRoutes.get("/search/:search", [authMiddleWare, adminMiddleWare], errorHandler(getProductBySearch))
+productsRoutes.get("/search/:search", errorHandler(getProductBySearch))
 productsRoutes.post("/", upload.array('images', 3), [authMiddleWare, adminMiddleWare], errorHandler(createProducts))
 productsRoutes.put("/:id", upload.array('images', 3), [authMiddleWare, adminMiddleWare], errorHandler(updateProducts))
 productsRoutes.patch("/:productid/", [authMiddleWare, adminMiddleWare], errorHandler(manageCategoriesOnProduct))
