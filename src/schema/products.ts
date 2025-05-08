@@ -15,11 +15,11 @@ export const ProductSchema = z.object({
   stockQuantity: z.number().int(),
   rating: z.number().optional(),
   variant: z.array(z.object({
-    name: z.string(), 
-    stock: z.number().int(), 
-    price: z.number().int(),  
-    specification: z.string()
-  })),
+    name: z.string().optional(), 
+    stock: z.coerce.number().int().optional(), 
+    price: z.coerce.number().int().optional(),  
+    specification: z.string().optional()
+  })).optional(),
   isVisible: z.boolean().default(false),
   images: z.any()
     .refine((files) => {

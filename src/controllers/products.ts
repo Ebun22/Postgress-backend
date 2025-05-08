@@ -9,32 +9,33 @@ import { NotFoundException } from "../exceptions/not-found";
 import { BadRequestsException } from "../exceptions/bad-request";
 import cloudinary from "../cloudinary";
 import { UploadApiResponse } from "cloudinary";
-  
-  interface ProductCondition {
+
+interface ProductCondition {
     include: {
-      category: boolean;
-      images: boolean;
+        category: boolean;
+        images: boolean;
     };
     where?: { isVisible: boolean };
     take: number;
     skip: number;
     cursor: {
-      id: string;
+        id: string;
     } | undefined;
     orderBy: {
-      id?: Prisma.SortOrder;
+        id?: Prisma.SortOrder;
     };
-  }
+}
 
 export const createProducts = async (req: Request, res: Response, next: NextFunction) => {
-    const { price, stockQuantity, category, isVisible, discount, ...body } = req.body;
+    const { price, stockQuantity, category, isVisible, discount, variant, ...body } = req.body;
     const files = req.files as Express.Multer.File[];
-
+    console.log("This is variant: ", variant)
     // Parse and transform inputs
     const newPrice = Number(price);
     const newStockQuantity = Number(stockQuantity);
     const newDiscount = Number(discount);
     const parsedCategory = JSON.parse(category)
+    const parsedVariant = JSON.parse(variant)
     const newIsVisible = isVisible ? JSON.parse(isVisible) : false;
 
     const createCategories: { create?: any, connect?: any } = {}
@@ -48,6 +49,7 @@ export const createProducts = async (req: Request, res: Response, next: NextFunc
         price: newPrice,
         stockQuantity: newStockQuantity,
         category: parsedCategory,
+        variant: parsedVariant,
         images: files,
         discount: newDiscount,
         isVisible: newIsVisible,
@@ -316,7 +318,7 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
 
 //get productby search
 export const getProductBySearch = async (req: Request, res: Response, next: NextFunction) => {
-    const { search,visible } = req.params;
+    const { search, visible } = req.params;
     console.log("This is the search: ", search)
     const products = await prisma.product.findMany({
         where: {
