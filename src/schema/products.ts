@@ -16,7 +16,7 @@ export const ProductSchema = z.object({
   rating: z.number().optional(),
   variant: z.array(z.object({
     name: z.string(), 
-    stock: z.coerce.number().int(), 
+    stockQuantity: z.coerce.number().int(), 
     price: z.coerce.number().int(),  
     specification: z.string()
   })).optional(),
